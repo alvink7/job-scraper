@@ -24,21 +24,42 @@ domains, at the **intern / new-grad** stage in the US / Bay Area / Remote.
      (no naive substring), with aliases collapsing to a canonical term.
    - Anything `>= min_score` is **strong**; anything `> 0` and below is
      **partial** (still sent, tagged 🟡). Noise below the domain floor is dropped.
-3. **Dedup** (`store.py`) — SQLite `seen(id, first_seen)`.
-4. **Notify** (`notify.py`) — one Discord embed per job (batched ≤10), showing
-   Company / Location / Score / **Matched terms** (the transparency mechanism).
+3. **Route** (`match.py` + `config.yaml → routes`) — each match is classified
+   into one Discord channel by topic. Classification is deterministic: every
+   keyword is owned by exactly one channel, and a job routes to the channel with
+   the highest **title-weighted** keyword score (title hits decide first; body
+   breaks the rest; ties use the `priority` order). The three channels:
+   - **autonomous_driving** — AV / robotics / perception / sensors / planning
+   - **hardware** — silicon, RTL/FPGA/ASIC, comp-arch, PCB, RF, signal integrity
+   - **software_and_firmware** — firmware / embedded + general software & ML
+4. **Dedup** (`store.py`) — SQLite `seen(id, first_seen)`.
+5. **Notify** (`notify.py`) — one Discord embed per job (batched ≤10), posted to
+   the routed channel's webhook, showing Company / Location / Score /
+   **Matched terms** (the transparency mechanism).
 
 Everything — companies, keywords, weights, gates — is tunable in `config.yaml`
 with no code edits.
 
 ## Setup (5 minutes)
 
-1. **Create a Discord webhook**: Server Settings → Integrations → Webhooks →
-   New Webhook → copy the URL.
+1. **Create three Discord webhooks** — one per channel (Server Settings →
+   Integrations → Webhooks → New Webhook → copy each URL):
+   - autonomous driving systems engineering
+   - hardware
+   - software and firmware
 2. **Push this repo** to GitHub.
-3. **Add the one secret**: repo → Settings → Secrets and variables → Actions →
-   New repository secret → name `DISCORD_WEBHOOK_URL`, value = your webhook URL.
-   *(That's the only secret — there is no LLM key.)*
+3. **Add three secrets**: repo → Settings → Secrets and variables → Actions →
+   New repository secret, for each channel:
+
+   | Secret name | Channel |
+   |-------------|---------|
+   | `DISCORD_WEBHOOK_AUTONOMY` | autonomous driving systems engineering |
+   | `DISCORD_WEBHOOK_HARDWARE` | hardware |
+   | `DISCORD_WEBHOOK_SWFW` | software and firmware |
+
+   *(No LLM key. `DISCORD_WEBHOOK_URL` is an optional fourth secret — a fallback
+   used for any route whose specific secret is unset. The env-var name for each
+   channel lives in `config.yaml → routes.channels.<name>.webhook_env`.)*
 4. **Seed the DB once** so the first real run doesn't flood you: Actions tab →
    `jobwatch` → Run workflow → mode `seed`. This marks all current matches seen
    without notifying.
@@ -79,11 +100,18 @@ python main.py               # real run: notify Discord + persist (needs DISCORD
 `--dry-run` is the primary tuning tool: it shows every fresh job with its score,
 strong/partial/FAIL status, matched terms, and any hard-fail reason.
 
-Set the webhook locally with:
+Set the webhooks locally with:
 
 ```bash
-export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/..."
+export DISCORD_WEBHOOK_AUTONOMY="https://discord.com/api/webhooks/..."
+export DISCORD_WEBHOOK_HARDWARE="https://discord.com/api/webhooks/..."
+export DISCORD_WEBHOOK_SWFW="https://discord.com/api/webhooks/..."
 ```
+
+`--dry-run` prints a `ROUTE` column (AUTO / HW / SW-FW) and a per-route count so
+you can see how postings will be split before anything is sent. To re-tune which
+channel a keyword feeds, move it between the lists under `routes.channels` in
+`config.yaml`.
 
 ## Tests
 

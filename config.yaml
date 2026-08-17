@@ -89,6 +89,81 @@ gates:
   min_domain_score: 3
 
 # =============================================================================
+# ROUTING — send each match to a Discord channel by topic. Classification is
+# deterministic: every canonical keyword below is owned by exactly one channel;
+# a job routes to the channel with the highest title-weighted keyword score
+# (title hits decide first; body breaks the rest; ties use `priority` order).
+# Each channel reads its webhook from an env var / GitHub secret. If that var is
+# unset, it falls back to DISCORD_WEBHOOK_URL.
+# =============================================================================
+routes:
+  default: software_and_firmware      # used only if a job owns no routed term
+  priority: [autonomous_driving, hardware, software_and_firmware]  # tie-break
+  channels:
+
+    autonomous_driving:               # "autonomous driving systems engineering"
+      webhook_env: DISCORD_WEBHOOK_AUTONOMY
+      terms:
+        - lidar
+        - radar
+        - point cloud
+        - sensor fusion
+        - perception
+        - sensor systems
+        - point cloud registration
+        - slam
+        - calibration
+        - camera-lidar
+        - autonomous vehicle
+        - robotics
+        - motion planning
+        - depth estimation
+        - occupancy
+        - state estimation
+        - control systems
+        - computer vision
+        - ros
+        - open3d
+        - jetson
+        - cuda
+        - ml for robotics
+        - foundation models
+
+    hardware:                         # silicon, EE, RF, sensor hardware
+      webhook_env: DISCORD_WEBHOOK_HARDWARE
+      terms:
+        - rtl
+        - verilog
+        - fpga
+        - asic
+        - computer architecture
+        - design verification
+        - pcb
+        - signal integrity
+        - oscilloscope
+        - dsp
+
+    software_and_firmware:            # firmware / embedded + general SW/ML
+      webhook_env: DISCORD_WEBHOOK_SWFW
+      terms:
+        - firmware
+        - embedded
+        - rtos
+        - microcontroller
+        - board bring-up
+        - can bus
+        - i2c/spi/uart
+        - c++
+        - c language
+        - python
+        - matlab
+        - linux
+        - git
+        - real-time
+        - benchmarking
+        - machine learning
+
+# =============================================================================
 # KEYWORDS — grouped by category. Weights come from matching.weights above.
 # Add/remove terms freely; add a new category by also adding its weight.
 # =============================================================================

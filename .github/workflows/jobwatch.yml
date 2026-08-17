@@ -38,6 +38,11 @@ jobs:
 
       - name: Run jobwatch
         env:
+          # One webhook per Discord channel. DISCORD_WEBHOOK_URL is an optional
+          # fallback used for any route whose specific secret is unset.
+          DISCORD_WEBHOOK_AUTONOMY: ${{ secrets.DISCORD_WEBHOOK_AUTONOMY }}
+          DISCORD_WEBHOOK_HARDWARE: ${{ secrets.DISCORD_WEBHOOK_HARDWARE }}
+          DISCORD_WEBHOOK_SWFW: ${{ secrets.DISCORD_WEBHOOK_SWFW }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           MODE="${{ github.event.inputs.mode }}"

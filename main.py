@@ -21,6 +21,7 @@ Env:
 import argparse
 import os
 import sys
+from collections import Counter, defaultdict
 
 import yaml
 
@@ -58,6 +59,35 @@ def fetch_all(config):
     return all_jobs
 
 
+ROUTE_LABELS = {
+    "autonomous_driving": "AUTO",
+    "hardware": "HW",
+    "software_and_firmware": "SW/FW",
+}
+
+
+def rlabel(route):
+    return ROUTE_LABELS.get(route, (route or "?")[:6])
+
+
+def channel_webhooks(config):
+    """Map channel name -> webhook URL (env var, falling back to _URL)."""
+    routes = config.get("routes", {}) or {}
+    fallback = os.environ.get("DISCORD_WEBHOOK_URL", "")
+    out = {}
+    for name, spec in (routes.get("channels") or {}).items():
+        env = (spec or {}).get("webhook_env", "")
+        out[name] = os.environ.get(env, "") or fallback
+    return out
+
+
+def route_summary(results):
+    if not results:
+        return "  by route: (none)"
+    rc = Counter(j.get("route") for j in results)
+    return "  by route: " + ", ".join(f"{rlabel(r)}={n}" for r, n in rc.items())
+
+
 def print_table(scored):
     """Print a ranked table of every fresh job (for --dry-run tuning)."""
     def sort_key(j):
@@ -67,7 +97,7 @@ def print_table(scored):
 
     rows = sorted(scored, key=sort_key)
     print("\n" + "=" * 100)
-    print(f"{'SCORE':>5}  {'STATUS':<10} {'COMPANY':<20} TITLE")
+    print(f"{'SCORE':>5}  {'STATUS':<8} {'ROUTE':<6} {'COMPANY':<18} TITLE")
     print("=" * 100)
     for j in rows:
         hf = j.get("hard_fail", "")
@@ -77,8 +107,9 @@ def print_table(scored):
             status = "partial"
         else:
             status = "strong"
-        print(f"{j.get('score', 0):>5}  {status:<10} "
-              f"{j.get('company', '?')[:20]:<20} {j.get('title', '')[:50]}")
+        route = "" if hf else rlabel(j.get("route"))
+        print(f"{j.get('score', 0):>5}  {status:<8} {route:<6} "
+              f"{j.get('company', '?')[:18]:<18} {j.get('title', '')[:46]}")
         if hf:
             print(f"       └─ {hf}")
         else:
@@ -133,6 +164,7 @@ def main(argv=None):
     results, noise, failed = split_results(scored)
     print(f"  send: {len(results)}   noise-dropped: {len(noise)}   "
           f"hard-failed: {len(failed)}")
+    print(route_summary(results))
 
     if args.dry_run:
         print_table(scored)
@@ -148,25 +180,42 @@ def main(argv=None):
         store.close()
         return 0
 
-    # Real run: notify, then persist.
-    webhook = os.environ.get("DISCORD_WEBHOOK_URL", "")
-    ok = notify_mod.notify(webhook, results, engine.min_score)
-    if ok:
-        # Mark ALL fresh jobs seen (results + noise + failed): gates are
-        # deterministic, so re-evaluating them changes nothing, and this stops
-        # noise from being reprocessed forever.
-        for j in fresh:
-            store.mark(j["id"])
-        store.commit()
-        print(f"Notified {len(results)} jobs; marked {len(fresh)} seen. "
-              f"DB now has {store.count()}.")
-    else:
-        print("Notification failed — NOT marking jobs seen (will retry next run).")
-        store.close()
-        return 1
+    # Real run: route each result to its channel's webhook, then persist.
+    webhooks = channel_webhooks(config)
+    groups = defaultdict(list)
+    for j in results:
+        groups[j.get("route", engine.route_default)].append(j)
 
+    all_ok = True
+    posted_ids = set()
+    for route, jobs in groups.items():
+        wh = webhooks.get(route, "")
+        if not wh:
+            print(f"  [route:{rlabel(route)}] no webhook configured — "
+                  f"skipping {len(jobs)} jobs (will retry next run)")
+            all_ok = False
+            continue
+        if notify_mod.notify(wh, jobs, engine.min_score):
+            posted_ids.update(j["id"] for j in jobs)
+            print(f"  [route:{rlabel(route)}] posted {len(jobs)}")
+        else:
+            all_ok = False
+
+    # Mark seen: everything that was never meant to post (noise + hard-fails)
+    # plus every result that actually posted. Results whose channel failed or
+    # was unconfigured stay unseen so they retry next run (no duplicate posts).
+    result_ids = {j["id"] for j in results}
+    marked = 0
+    for j in fresh:
+        if j["id"] in result_ids and j["id"] not in posted_ids:
+            continue
+        store.mark(j["id"])
+        marked += 1
+    store.commit()
+    print(f"Posted {len(posted_ids)} jobs; marked {marked} seen. "
+          f"DB now has {store.count()}.")
     store.close()
-    return 0
+    return 0 if all_ok else 1
 
 
 if __name__ == "__main__":

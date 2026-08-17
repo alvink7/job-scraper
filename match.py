@@ -85,6 +85,19 @@ class Matcher:
             (t, _compile_term(t)) for t in self.exclude_title
         ]
 
+        # Routing: map each canonical term -> channel name.
+        routes = config.get("routes", {}) or {}
+        self.route_default = routes.get("default", "software_and_firmware")
+        self.route_priority = list(routes.get("priority", []))
+        self.route_of = {}
+        for channel, spec in (routes.get("channels") or {}).items():
+            for term in (spec.get("terms") or []):
+                self.route_of[term] = channel
+        # Ensure every channel appears in the priority list (stable order).
+        for channel in (routes.get("channels") or {}):
+            if channel not in self.route_priority:
+                self.route_priority.append(channel)
+
         # Intern / new-grad positive signals.
         self._intern_signals = [
             "intern", "internship", "co-op", "coop", "new grad",
@@ -183,6 +196,7 @@ class Matcher:
         out["matched"] = []
         out["hard_fail"] = ""
         out["partial"] = False
+        out["route"] = self.route_default
 
         force_partial = False
 
@@ -211,6 +225,10 @@ class Matcher:
         title_score = 0.0
         body_score = 0.0
         matched = set()
+        # Per-term weighted contribution + whether it hit the title — reused for
+        # routing so classification uses the same title-boosted signal.
+        term_score = {}
+        title_terms = set()
 
         categories = set(title_hits) | set(body_hits)
         for cat in categories:
@@ -228,10 +246,17 @@ class Matcher:
             body_score += w * body_count
             matched |= th
             matched |= bh
+            for c in th:
+                contrib = w * self.title_multiplier
+                term_score[c] = max(term_score.get(c, 0), contrib)
+                title_terms.add(c)
+            for c in bh:
+                term_score[c] = max(term_score.get(c, 0), w)
 
         score = round(title_score + body_score)
         out["score"] = int(score)
         out["matched"] = sorted(matched)
+        out["route"] = self._classify_route(term_score, title_terms)
 
         # Gate (d): domain floor (anti-noise). Applied after scoring.
         if score < self.min_domain_score:
@@ -245,6 +270,41 @@ class Matcher:
             out["partial"] = True
 
         return out
+
+    def _classify_route(self, term_score, title_terms):
+        """Pick the channel with the strongest signal.
+
+        Title-owned terms decide first; if no routed term is in the title, the
+        body decides; ties break by `route_priority` order; if nothing routes,
+        fall back to the default channel.
+        """
+        def best(scores):
+            # scores: {channel: total}. Return highest, tie-break by priority.
+            candidates = [(c, s) for c, s in scores.items() if s > 0]
+            if not candidates:
+                return None
+
+            def rank(item):
+                channel, s = item
+                try:
+                    pri = self.route_priority.index(channel)
+                except ValueError:
+                    pri = len(self.route_priority)
+                return (-s, pri)
+
+            return sorted(candidates, key=rank)[0][0]
+
+        title_scores = {}
+        all_scores = {}
+        for term, sc in term_score.items():
+            channel = self.route_of.get(term)
+            if not channel:
+                continue
+            all_scores[channel] = all_scores.get(channel, 0) + sc
+            if term in title_terms:
+                title_scores[channel] = title_scores.get(channel, 0) + sc
+
+        return best(title_scores) or best(all_scores) or self.route_default
 
     def score_jobs(self, jobs):
         return [self.score_job(j) for j in jobs]

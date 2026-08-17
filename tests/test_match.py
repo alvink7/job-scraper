@@ -36,6 +36,26 @@ CONFIG = {
         ],
         "min_domain_score": 3,
     },
+    "routes": {
+        "default": "software_and_firmware",
+        "priority": ["autonomous_driving", "hardware", "software_and_firmware"],
+        "channels": {
+            "autonomous_driving": {
+                "webhook_env": "DISCORD_WEBHOOK_AUTONOMY",
+                "terms": ["lidar", "radar", "point cloud", "sensor fusion",
+                          "perception", "slam", "ros"],
+            },
+            "hardware": {
+                "webhook_env": "DISCORD_WEBHOOK_HARDWARE",
+                "terms": ["pcb"],
+            },
+            "software_and_firmware": {
+                "webhook_env": "DISCORD_WEBHOOK_SWFW",
+                "terms": ["firmware", "can bus", "c++", "python", "linux",
+                          "i2c/spi/uart"],
+            },
+        },
+    },
     "keywords": {
         "core": {
             "lidar": ["lidar", "li-dar", "laser scanning"],
@@ -241,6 +261,34 @@ class TestRankingAndDeterminism(unittest.TestCase):
         b = self.m.score_job(j)
         self.assertEqual(a["score"], b["score"])
         self.assertEqual(a["matched"], b["matched"])
+
+
+class TestRouting(unittest.TestCase):
+    def setUp(self):
+        self.m = Matcher(CONFIG)
+
+    def test_perception_role_routes_to_autonomy(self):
+        r = self.m.score_job(job("LiDAR Perception Intern", "lidar internship"))
+        self.assertEqual(r["route"], "autonomous_driving")
+
+    def test_firmware_role_routes_to_swfw(self):
+        r = self.m.score_job(job("Firmware Intern", "can bus firmware internship"))
+        self.assertEqual(r["route"], "software_and_firmware")
+
+    def test_pcb_role_routes_to_hardware(self):
+        r = self.m.score_job(job("PCB Design Intern", "pcb layout internship"))
+        self.assertEqual(r["route"], "hardware")
+
+    def test_title_decides_over_body(self):
+        # Firmware in the title, lidar only in the body -> firmware channel.
+        r = self.m.score_job(job("Firmware Intern",
+                                 "work near the lidar perception team. internship"))
+        self.assertEqual(r["route"], "software_and_firmware")
+
+    def test_route_is_deterministic(self):
+        j = job("LiDAR Perception Intern", "lidar sensor fusion internship")
+        self.assertEqual(self.m.score_job(j)["route"],
+                         self.m.score_job(j)["route"])
 
 
 class TestFetchMapping(unittest.TestCase):
