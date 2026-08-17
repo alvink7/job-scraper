@@ -1,0 +1,63 @@
+name: jobwatch
+
+on:
+  schedule:
+    - cron: "0 15 * * *"   # 08:00 America/Los_Angeles (PST) / 07:00 PDT-adjacent
+    - cron: "0 23 * * *"   # 16:00 America/Los_Angeles
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        required: true
+        default: normal
+        type: choice
+        options:
+          - normal
+          - seed
+          - dry-run
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jobwatch
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run jobwatch
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          if [ "$MODE" = "seed" ]; then
+            python main.py --seed
+          elif [ "$MODE" = "dry-run" ]; then
+            python main.py --dry-run
+          else
+            python main.py
+          fi
+
+      - name: Commit seen.db
+        if: ${{ github.event.inputs.mode != 'dry-run' }}
+        run: |
+          git config user.name  "jobwatch-bot"
+          git config user.email "jobwatch-bot@users.noreply.github.com"
+          git add seen.db
+          if git diff --staged --quiet; then
+            echo "No DB changes to commit."
+          else
+            git commit -m "chore: update seen.db [skip ci]"
+            git push
+          fi
