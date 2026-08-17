@@ -1,4 +1,5 @@
 name: jobwatch
+# Keyword-only ATS job watcher — posts routed matches to Discord.
 
 on:
   schedule:
