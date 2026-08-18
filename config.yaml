@@ -330,6 +330,7 @@ companies:
   - { name: Torc Robotics,         ats: greenhouse, slug: torcrobotics }       # (✓ 58)  AV trucking (Daimler)
   - { name: Motional,              ats: greenhouse, slug: motional }           # (✓ 83)  AV robotaxi
   - { name: Bot Auto,              ats: greenhouse, slug: botauto }            # (✓ 21)  AV trucking
+  - { name: WeRide,                ats: lever,      slug: weride }             # (✓ 30)  robotaxi / AV
   - { name: "1X",                  ats: ashby,      slug: "1x" }               # (✓ 81)  humanoid robots
   - { name: Apptronik,             ats: greenhouse, slug: apptronik }          # (✓ 79)  humanoid robots
   - { name: Agility Robotics,      ats: greenhouse, slug: agilityrobotics }    # (✓ 64)  humanoid robots
@@ -403,15 +404,29 @@ companies:
   - { name: AMD, ats: phenom, base: "https://careers.amd.com" }              # (✓ 1145) Phenom API
 
   # ------------------------------------------------------------------------- #
-  # EV / energy / hard-tech
+  # EV / AUTOMOTIVE — makers, charging, batteries/powertrain
   # ------------------------------------------------------------------------- #
-  - { name: Lucid Motors, ats: greenhouse, slug: lucidmotors }               # (✓ 324) EV
+  - { name: Lucid Motors,    ats: greenhouse, slug: lucidmotors }            # (✓ 324) EV
+  - { name: Scout Motors,    ats: greenhouse, slug: scoutmotors }            # (✓ 258) VW-backed US EV (trucks/SUVs)
+  - { name: Harbinger,       ats: greenhouse, slug: harbingermotors }        # (✓ 88)  electric medium-duty trucks
+  - { name: Faraday Future,  ats: greenhouse, slug: faradayfuture }          # (✓ 60)  EV
+  - { name: Slate Auto,      ats: ashby,      slug: slate }                  # (✓ 3)   affordable EV pickups
+  - { name: ChargePoint,     ats: greenhouse, slug: chargepoint }            # (✓ 24)  EV charging network/hardware
+  - { name: Redwood Materials, ats: greenhouse, slug: redwoodmaterials }     # (✓ 151) battery recycling/materials
+  - { name: Our Next Energy, ats: greenhouse, slug: onenergy }               # (✓ 57)  EV battery systems
+  - { name: Sila,            ats: greenhouse, slug: silananotechnologies }   # (✓ 30)  silicon anode battery materials
+  - { name: Factorial Energy, ats: greenhouse, slug: factorialenergy }       # (✓ 17)  solid-state batteries
+  - { name: Solid Power,     ats: greenhouse, slug: solidpower }             # (✓ 13)  solid-state batteries
+  - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
+
+  # ------------------------------------------------------------------------- #
+  # ENERGY / hard-tech (non-automotive)
+  # ------------------------------------------------------------------------- #
   - { name: Archer Aviation, ats: greenhouse, slug: archer }                 # (✓)     eVTOL aircraft
   - { name: Base Power,   ats: ashby,      slug: base-power }                # (✓ 173) grid / battery hardware
   - { name: Form Energy,  ats: ashby,      slug: formenergy }                # (✓ 186) grid storage
   - { name: KoBold Metals, ats: greenhouse, slug: koboldmetals }             # (✓ 33)  AI-driven exploration
   - { name: Radiant,      ats: ashby,      slug: radiant }                   # (✓ 28)  portable nuclear microreactors
-  - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
 
   # ------------------------------------------------------------------------- #
   # BIG TECH — hardware-relevant only (NVIDIA is in SILICON above)
@@ -434,6 +449,10 @@ companies:
   #     non-obvious domain, addable via the `phenom` adapter once found).
   #   Custom career sites: Tesla, Google, Meta, Microsoft, Boston Dynamics,
   #     Cruise, Aurora, Luminar, Ouster, Ambarella, SiFive, Rivos, Hailo, Groq.
+  #   Traditional auto OEMs / Tier-1s on custom or anti-bot platforms (need a
+  #     bespoke adapter): Ford, GM (Umbraco, 404s without a browser session),
+  #     Toyota, Honda, Stellantis, Bosch, Aptiv, Magna, Continental, BorgWarner.
   #   Probed but empty/renamed: Applied Intuition, Gatik, Pony.ai, Overland AI,
-  #     Firefly, Impulse Space, Joby, Beta, Wisk, QuantumScape, Serve, Espressif.
+  #     Firefly, Impulse Space, Joby, Beta, Wisk, QuantumScape, Serve, Espressif,
+  #     Canoo, Aptera, Polestar, EVgo, Nikola, Zero Motorcycles, LiveWire.
   # ------------------------------------------------------------------------- #
