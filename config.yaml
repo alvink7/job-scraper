@@ -82,8 +82,10 @@ gates:
     - operations
   # Location allowlist. Substring match against location (or body if location is
   # empty). Empty list [] disables the gate.
-  # Scope: US only — NYC + California Bay Area + California LA/OC area.
+  # Scope: US — NYC + California (Bay Area, LA/OC, San Diego) + Remote.
   location_any:
+    # --- Remote (US) ---
+    - remote
     # --- New York City ---
     - new york
     - nyc
@@ -134,6 +136,8 @@ gates:
     - irvine
     - costa mesa
     - anaheim
+    # --- California San Diego ---
+    - san diego
   min_domain_score: 3
 
 # =============================================================================
