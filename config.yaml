@@ -62,15 +62,35 @@ gates:
     - llm
     - generative ai
     - research scientist
+    # --- non-EE/CS engineering disciplines (must be electrical/computer) ---
+    - mechanical
+    - civil
+    - structural
+    - chemical
+    - materials
+    - biomedical
+    - environmental
+    - thermal
+    - propulsion
+    - aerodynamics
+    - "industrial engineer"
+    - manufacturing
+    # --- non-engineering roles (must be an engineering role) ---
+    - management       # Product/Program Management ( "manager" already excluded )
+    - marketing
+    - recruiting
+    - operations
   # Location allowlist. Substring match against location (or body if location is
-  # empty). Empty list [] disables the gate. Favors US / Bay Area / Remote.
+  # empty). Empty list [] disables the gate.
+  # Scope: US only — NYC + California Bay Area + California LA/OC area.
   location_any:
-    - united states
-    - usa
-    - "u.s."
-    - remote
-    - california
-    - ", ca"
+    # --- New York City ---
+    - new york
+    - nyc
+    - manhattan
+    - brooklyn
+    - long island city
+    # --- California Bay Area ---
     - san francisco
     - bay area
     - mountain view
@@ -83,26 +103,37 @@ gates:
     - redwood city
     - menlo park
     - cupertino
-    - seattle
-    - "washington"
-    - austin
-    - texas
-    - ", tx"
-    - new york
-    - ", ny"
-    - boston
-    - massachusetts
-    - ", ma"
+    - berkeley
+    - oakland
+    - emeryville
+    - south san francisco
+    - san mateo
+    - milpitas
+    - hayward
+    - alameda
+    - pleasanton
+    - san bruno
+    - burlingame
+    - san carlos
+    - campbell
+    - los gatos
+    - newark, ca
+    # --- California LA / Orange County area ---
     - los angeles
-    - san diego
-    - denver
-    - colorado
-    - pittsburgh
-    - ", pa"
-    - michigan
-    - arizona
-    - oregon
-    - portland
+    - santa monica
+    - el segundo
+    - pasadena
+    - long beach
+    - torrance
+    - culver city
+    - burbank
+    - glendale
+    - hawthorne
+    - playa vista
+    - marina del rey
+    - irvine
+    - costa mesa
+    - anaheim
   min_domain_score: 3
 
 # =============================================================================

@@ -283,6 +283,77 @@ class TestLocationGate(unittest.TestCase):
         self.assertEqual(r["hard_fail"], "")
 
 
+class TestDisciplineGate(unittest.TestCase):
+    def setUp(self):
+        import copy
+        cfg = copy.deepcopy(CONFIG)
+        cfg["gates"]["exclude_title"] = cfg["gates"]["exclude_title"] + [
+            "mechanical", "civil", "structural", "chemical", "materials",
+            "manufacturing", "management"]
+        self.m = Matcher(cfg)
+
+    def test_mechanical_excluded(self):
+        r = self.m.score_job(job("Mechanical Engineer Intern", "cad and lidar"))
+        self.assertEqual(r["hard_fail"], "excluded title term: mechanical")
+
+    def test_civil_excluded(self):
+        r = self.m.score_job(job("Civil Engineering Intern", "surveying"))
+        self.assertTrue(r["hard_fail"].startswith("excluded title term"))
+
+    def test_electrical_passes(self):
+        r = self.m.score_job(job("Electrical Engineer Intern", "firmware pcb lidar"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_electromechanical_not_falsely_excluded(self):
+        # "mechanical" must not match inside "electromechanical".
+        r = self.m.score_job(job("Electromechanical Systems Intern",
+                                 "firmware and sensors"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_manufacturing_excluded(self):
+        r = self.m.score_job(job("Manufacturing Engineer Intern", "pcb assembly"))
+        self.assertEqual(r["hard_fail"], "excluded title term: manufacturing")
+
+    def test_product_management_excluded(self):
+        r = self.m.score_job(job("Hardware Product Management Intern", "pcb lidar"))
+        self.assertEqual(r["hard_fail"], "excluded title term: management")
+
+
+class TestTightLocationGate(unittest.TestCase):
+    def setUp(self):
+        import copy
+        cfg = copy.deepcopy(CONFIG)
+        cfg["gates"]["location_any"] = [
+            "new york", "nyc", "san francisco", "mountain view", "san jose",
+            "los angeles", "el segundo"]
+        self.m = Matcher(cfg)
+
+    def test_bay_area_passes(self):
+        r = self.m.score_job(job("Firmware Intern", "firmware internship",
+                                 location="Mountain View, CA"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_nyc_passes(self):
+        r = self.m.score_job(job("Firmware Intern", "firmware internship",
+                                 location="New York, NY"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_la_passes(self):
+        r = self.m.score_job(job("Firmware Intern", "firmware internship",
+                                 location="El Segundo, CA"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_seattle_fails(self):
+        r = self.m.score_job(job("Firmware Intern", "firmware internship",
+                                 location="Seattle, WA"))
+        self.assertEqual(r["hard_fail"], "location not in allowlist")
+
+    def test_remote_fails(self):
+        r = self.m.score_job(job("Firmware Intern", "firmware internship",
+                                 location="Remote, US"))
+        self.assertEqual(r["hard_fail"], "location not in allowlist")
+
+
 class TestNoiseFloor(unittest.TestCase):
     def setUp(self):
         self.m = Matcher(CONFIG)

@@ -9,8 +9,10 @@ committed back to the repo.
 Targeted at a **hardware / firmware** and **autonomy / robotics / sensors**
 candidate: embedded/firmware, PCB & signal integrity, radar/LiDAR DSP, robotics
 perception, and GPU-compute-for-perception (CUDA/Jetson) — **not** ML modeling.
-It surfaces **internships only** (US / Bay Area / Remote), and hard-excludes ML /
-data-science roles by title.
+Scope is deliberately narrow: **summer engineering internships**, **electrical /
+computer** relevance required (no mechanical/civil/manufacturing/PM roles, ML/
+data-science roles excluded by title), located in **NYC or the California Bay
+Area / LA area**.
 
 ## How it works
 
@@ -18,10 +20,11 @@ data-science roles by title.
    return a normalized job dict. One dead company logs an error and returns `[]`;
    it never crashes the run.
 2. **Score** (`match.py`) — the deterministic engine:
-   - **Hard gates** run first: seniority + ML-role title exclusion, an
-     **intern-only** gate (the title must say intern/internship/co-op, plus
-     "N+ years" detection), a **summer** season gate (drops titles naming a
-     different season), and a US/Bay-Area/Remote location allowlist.
+   - **Hard gates** run first: title exclusions (seniority, ML/data-science,
+     non-EE/CS disciplines like mechanical/civil, and non-engineering roles like
+     management), an **intern-only** gate (title must say intern/internship/
+     co-op, plus "N+ years" detection), a **summer** season gate, and a location
+     allowlist scoped to NYC + CA Bay Area + LA area.
    - **Weighted scoring**: `core` (5) / `strong` (3) / `supporting` (1) keyword
      categories, with title hits worth 2× body hits and body hits capped per
      category so keyword-stuffed JDs can't dominate. Word-boundary/phrase aware
