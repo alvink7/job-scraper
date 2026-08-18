@@ -489,6 +489,40 @@ class TestFetchMapping(unittest.TestCase):
         self.assertIn("ASIC", out[0]["content"])
         self.assertIn("Verilog", out[0]["content"])
 
+    def test_map_apple(self):
+        results = [{
+            "reqId": "200663414-3956", "positionId": "200663414",
+            "postingTitle": "Firmware Engineering Intern",
+            "transformedPostingTitle": "firmware-engineering-intern",
+            "jobSummary": "Work on <b>firmware</b> for Apple silicon.",
+            "postingDate": "Aug 1, 2026",
+            "locations": [{"city": "Cupertino", "stateProvince": "California",
+                           "countryName": "United States"}],
+        }]
+        out = fetch.map_apple("Apple", results)
+        self.assertEqual(out[0]["id"], "apple:200663414-3956")
+        self.assertEqual(out[0]["title"], "Firmware Engineering Intern")
+        self.assertEqual(out[0]["location"], "Cupertino, California")
+        self.assertTrue(out[0]["url"].startswith(
+            "https://jobs.apple.com/en-us/details/200663414/"))
+        self.assertIn("firmware", out[0]["content"].lower())
+
+    def test_map_phenom(self):
+        wrappers = [{"data": {
+            "req_id": "86493", "slug": "86493",
+            "title": "ASIC Design Intern",
+            "city": "Santa Clara", "state": "California", "country": "United States",
+            "apply_url": "https://x.icims.com/jobs/86493/login",
+            "description": "<p>Design <b>ASIC</b></p>",
+            "qualifications": "<li>Verilog</li>",
+            "posted_date": "2026-08-01T00:00:00+0000",
+        }}]
+        out = fetch.map_phenom("AMD", "careers.amd.com", wrappers)
+        self.assertEqual(out[0]["id"], "phenom:careers.amd.com:86493")
+        self.assertEqual(out[0]["location"], "Santa Clara, California, United States")
+        self.assertIn("ASIC", out[0]["content"])
+        self.assertIn("Verilog", out[0]["content"])
+
     def test_map_workday(self):
         posting = {
             "title": "New Grad HW Engineer",

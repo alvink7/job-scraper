@@ -400,6 +400,7 @@ companies:
   - { name: Broadcom,          ats: workday, tenant: broadcom,        wd_num: 1, site: External_Career }   # (✓ 355)
   - { name: GlobalFoundries,   ats: workday, tenant: globalfoundries, wd_num: 1, site: External }          # (✓ 630)
   - { name: Marvell,           ats: workday, tenant: marvell,         wd_num: 1, site: MarvellCareers2 }   # (✓ 31)
+  - { name: AMD, ats: phenom, base: "https://careers.amd.com" }              # (✓ 1145) Phenom API
 
   # ------------------------------------------------------------------------- #
   # EV / energy / hard-tech
@@ -419,15 +420,18 @@ companies:
                                     # Annapurna/AWS silicon, Devices, Robotics.
                                     # Optional `queries: [...]` overrides the
                                     # default hardware/firmware intern query set.
+  - { name: Apple, ats: apple }     # custom jobs.apple.com adapter (SSR hydration
+                                    # JSON); pages newest US roles, gates filter.
+                                    # Optional `max_pages: N` (default 40).
   - { name: HP, ats: workday, tenant: hp, wd_num: 5, site: ExternalCareerSite }       # (✓ 751)  PCs / print / hardware
 
   # ------------------------------------------------------------------------- #
-  # NOT INCLUDED — custom/auth-gated career sites (no simple public JSON), or an
-  # empty/renamed board when probed (2026-08-17). Would each need a custom
-  # adapter or a discovered path:
-  #   Auth-gated APIs: Apple (jobs.apple.com, needs CSRF/session — 401/404),
-  #     Qualcomm (Eightfold, 403), AMD, Texas Instruments, Microchip, onsemi,
-  #     Qorvo, Skyworks, Western Digital, Renesas, Lam Research, Synopsys.
+  # NOT INCLUDED — still need a discovered endpoint or custom adapter:
+  #   Qualcomm (Eightfold, 403). Texas Instruments, Microchip, onsemi, Qorvo,
+  #     Skyworks, Western Digital, Renesas, Lam Research, Synopsys — not found on
+  #     Workday or a Phenom `careers.<co>.com/api/jobs` path; each needs its real
+  #     careers host discovered (many are Phenom/Eightfold/Brassring on a
+  #     non-obvious domain, addable via the `phenom` adapter once found).
   #   Custom career sites: Tesla, Google, Meta, Microsoft, Boston Dynamics,
   #     Cruise, Aurora, Luminar, Ouster, Ambarella, SiFive, Rivos, Hailo, Groq.
   #   Probed but empty/renamed: Applied Intuition, Gatik, Pony.ai, Overland AI,

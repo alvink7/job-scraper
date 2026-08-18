@@ -67,6 +67,15 @@ def _get(url):
     return _request(url, method="GET")
 
 
+def _get_text(url):
+    """GET returning raw decoded text (for HTML pages, not JSON)."""
+    req = urllib.request.Request(url, headers={
+        "User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml",
+    })
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return resp.read().decode("utf-8", errors="replace")
+
+
 def _post(url, body):
     return _request(url, data=body, method="POST")
 
@@ -306,6 +315,140 @@ def fetch_amazon(name, queries=None, result_limit=100, max_pages=3):
 
 
 # --------------------------------------------------------------------------- #
+# Apple (custom jobs.apple.com — SSR page with embedded hydration JSON)
+# --------------------------------------------------------------------------- #
+# jobs.apple.com server-renders results into
+#   window.__staticRouterHydrationData = JSON.parse("...")
+# under loaderData.search.searchResults. Its keyword `search` param is ignored
+# server-side, so we page the newest US roles and let the gates filter; new
+# intern reqs surface in "newest" and are caught via dedup on subsequent runs.
+_APPLE_MARKER = "window.__staticRouterHydrationData = JSON.parse("
+
+
+def _apple_extract_search(html):
+    i = html.find(_APPLE_MARKER)
+    if i < 0:
+        return None
+    # The argument is a JSON string literal; decode it, then parse its contents.
+    js_string, _ = json.JSONDecoder().raw_decode(html, i + len(_APPLE_MARKER))
+    data = json.loads(js_string)
+    return (data.get("loaderData") or {}).get("search")
+
+
+def _apple_location(job):
+    parts = []
+    for loc in (job.get("locations") or [])[:3]:
+        city = loc.get("city") or ""
+        state = loc.get("stateProvince") or ""
+        piece = ", ".join(p for p in (city, state) if p)
+        piece = piece or loc.get("name") or loc.get("countryName") or ""
+        if piece:
+            parts.append(piece)
+    # de-dup while preserving order
+    return " / ".join(dict.fromkeys(parts))
+
+
+def map_apple(name, results):
+    out = []
+    for j in results:
+        pid = j.get("positionId") or j.get("reqId") or ""
+        slug = j.get("transformedPostingTitle") or ""
+        out.append({
+            "id": f"apple:{j.get('reqId') or pid}",
+            "company": name,
+            "title": j.get("postingTitle", "") or "",
+            "location": _apple_location(j),
+            "url": f"https://jobs.apple.com/en-us/details/{pid}/{slug}",
+            "content": _strip_html(j.get("jobSummary", "") or ""),
+            "updated": str(j.get("postingDate", "") or ""),
+        })
+    return out
+
+
+def fetch_apple(name, max_pages=40):
+    seen_ids = set()
+    raw = []
+    try:
+        for p in range(1, max_pages + 1):
+            url = ("https://jobs.apple.com/en-us/search"
+                   f"?sort=newest&location=united-states-USA&page={p}")
+            search = _apple_extract_search(_get_text(url))
+            if not search:
+                break
+            results = search.get("searchResults") or []
+            if not results:
+                break
+            for j in results:
+                key = j.get("reqId") or j.get("positionId")
+                if key in seen_ids:
+                    continue
+                seen_ids.add(key)
+                raw.append(j)
+            total = search.get("totalRecords") or 0
+            if total and p * 20 >= total:
+                break
+            time.sleep(0.3)
+        return map_apple(name, raw)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [apple] ERROR: {e}")
+        return map_apple(name, raw)
+
+
+# --------------------------------------------------------------------------- #
+# Phenom People (e.g. careers.amd.com/api/jobs) — generic; parameterize by base
+# --------------------------------------------------------------------------- #
+def map_phenom(name, host, wrappers):
+    out = []
+    seen = set()
+    for w in wrappers:
+        d = w.get("data") or w
+        req = str(d.get("req_id") or d.get("slug") or "")
+        if not req or req in seen:
+            continue
+        seen.add(req)
+        loc = ", ".join(
+            p for p in (d.get("city"), d.get("state"), d.get("country")) if p
+        ) or (d.get("location_name") or "")
+        url = d.get("apply_url") or f"https://{host}/careers-home/jobs/{req}"
+        content = _strip_html(
+            (d.get("description") or "") + " " + (d.get("qualifications") or "")
+        )
+        out.append({
+            "id": f"phenom:{host}:{req}",
+            "company": name,
+            "title": d.get("title", "") or "",
+            "location": loc,
+            "url": url,
+            "content": content,
+            "updated": str(d.get("posted_date", "") or ""),
+        })
+    return out
+
+
+def fetch_phenom(name, base, max_pages=20, page_size=100):
+    base = base.rstrip("/")
+    host = urllib.parse.urlparse(base).netloc
+    wrappers = []
+    try:
+        for p in range(1, max_pages + 1):
+            url = (f"{base}/api/jobs?page={p}&limit={page_size}"
+                   "&sortBy=relevance&descending=false&internal=false")
+            data = _get(url)
+            jobs = data.get("jobs") or []
+            if not jobs:
+                break
+            wrappers.extend(jobs)
+            total = data.get("totalCount") or 0
+            if total and p * page_size >= total:
+                break
+            time.sleep(0.3)
+        return map_phenom(name, host, wrappers)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [phenom:{host}] ERROR: {e}")
+        return map_phenom(name, host, wrappers)
+
+
+# --------------------------------------------------------------------------- #
 # Dispatcher
 # --------------------------------------------------------------------------- #
 def fetch_company(company):
@@ -328,5 +471,9 @@ def fetch_company(company):
         )
     if ats == "amazon":
         return fetch_amazon(name, company.get("queries"))
+    if ats == "apple":
+        return fetch_apple(name, company.get("max_pages", 40))
+    if ats == "phenom":
+        return fetch_phenom(name, company["base"], company.get("max_pages", 20))
     print(f"  [{name}] unknown ats '{ats}' — skipping")
     return []
