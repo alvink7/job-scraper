@@ -24,6 +24,7 @@ import time
 import html as _htmllib
 import urllib.request
 import urllib.error
+import urllib.parse
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -233,6 +234,78 @@ def fetch_workday(company, tenant, wd_num, site, max_pages=15):
 
 
 # --------------------------------------------------------------------------- #
+# Amazon (custom amazon.jobs search.json — no ATS)
+# --------------------------------------------------------------------------- #
+# Amazon has tens of thousands of roles, so instead of pulling everything we run
+# a set of candidate-relevant relevance queries and dedup. Location/intern/domain
+# gates then filter as usual. Covers Lab126, Annapurna/AWS silicon, Devices,
+# Amazon Robotics, etc.
+DEFAULT_AMAZON_QUERIES = [
+    "hardware development engineer",   # Amazon's title for HW roles (incl. interns)
+    "asic intern",
+    "fpga intern",
+    "firmware intern",
+    "embedded intern",
+    "electrical engineer intern",
+    "robotics intern",
+    "silicon intern",
+]
+
+
+def map_amazon(name, jobs):
+    out = []
+    for j in jobs:
+        loc = j.get("normalized_location") or j.get("location") or ""
+        content = " ".join(
+            _strip_html(j.get(k, "") or "")
+            for k in ("description_short", "basic_qualifications",
+                      "preferred_qualifications", "description")
+        )
+        out.append({
+            "id": f"amazon:{j.get('id_icims') or j.get('id')}",
+            "company": name,
+            "title": j.get("title", "") or "",
+            "location": loc,
+            "url": "https://www.amazon.jobs" + (j.get("job_path", "") or ""),
+            "content": content.strip(),
+            "updated": str(j.get("posted_date", "") or ""),
+        })
+    return out
+
+
+def fetch_amazon(name, queries=None, result_limit=100, max_pages=3):
+    queries = queries or DEFAULT_AMAZON_QUERIES
+    seen_ids = set()
+    raw = []
+    try:
+        for q in queries:
+            for page in range(max_pages):
+                offset = page * result_limit
+                url = (
+                    "https://www.amazon.jobs/en/search.json?base_query="
+                    + urllib.parse.quote(q)
+                    + f"&offset={offset}&result_limit={result_limit}&sort=relevant"
+                )
+                data = _get(url)
+                page_jobs = data.get("jobs", []) or []
+                if not page_jobs:
+                    break
+                for j in page_jobs:
+                    key = j.get("id_icims") or j.get("id")
+                    if key in seen_ids:
+                        continue
+                    seen_ids.add(key)
+                    raw.append(j)
+                if len(page_jobs) < result_limit:
+                    break
+                time.sleep(0.3)
+        return map_amazon(name, raw)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [amazon] ERROR: {e}")
+        return map_amazon(name, raw)
+
+
+# --------------------------------------------------------------------------- #
 # Dispatcher
 # --------------------------------------------------------------------------- #
 def fetch_company(company):
@@ -253,5 +326,7 @@ def fetch_company(company):
             company["site"],
             company.get("max_pages", 15),
         )
+    if ats == "amazon":
+        return fetch_amazon(name, company.get("queries"))
     print(f"  [{name}] unknown ats '{ats}' — skipping")
     return []

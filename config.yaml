@@ -336,6 +336,13 @@ companies:
   - { name: Diligent Robotics,     ats: greenhouse, slug: diligentrobotics }   # (✓ 15)  service robots
   - { name: Path Robotics,         ats: greenhouse, slug: pathrobotics }       # (✓ 50)  welding robots
   - { name: Gecko Robotics,        ats: ashby,      slug: gecko-robotics }     # (✓ 18)  inspection robots
+  - { name: Reliable Robotics,     ats: ashby,      slug: reliable-robotics }  # (✓ 52)  autonomous aviation
+  - { name: Skyryse,               ats: greenhouse, slug: skyryse }            # (✓ 14)  aviation autonomy / avionics
+  - { name: Nimble,                ats: greenhouse, slug: nimblerobotics }     # (✓ 26)  warehouse robots
+  - { name: Formic,                ats: greenhouse, slug: formic }             # (✓ 41)  factory automation robots
+  - { name: Carbon Robotics,       ats: greenhouse, slug: carbonrobotics }     # (✓ 16)  ag robotics (laser weeding)
+  - { name: Third Wave Automation, ats: greenhouse, slug: thirdwaveautomation } # (✓ 8)  autonomous forklifts
+  - { name: Ambi Robotics,         ats: lever,      slug: ambirobotics }       # (✓ 6)   sortation robots
 
   # ------------------------------------------------------------------------- #
   # DEFENSE / national security   [DEFENSE]  — remove any you don't want
@@ -348,6 +355,7 @@ companies:
   - { name: Epirus,         ats: greenhouse, slug: epirus,            defense: true } # (✓ 39)   directed energy / RF
   - { name: True Anomaly,   ats: greenhouse, slug: trueanomalyinc,    defense: true } # (✓ 161)  space defense
   - { name: Allen Control Systems, ats: ashby, slug: allen-control-systems, defense: true } # (✓ 83) counter-drone robotics/controls
+  - { name: Scout AI,       ats: greenhouse, slug: scoutai,           defense: true } # (✓ 29)  autonomy for defense
 
   # ------------------------------------------------------------------------- #
   # SPACE / aerospace hardware
@@ -361,6 +369,8 @@ companies:
   - { name: Ursa Major,       ats: greenhouse, slug: ursamajor }              # (✓ 83)   rocket propulsion
   - { name: Stoke Space,      ats: greenhouse, slug: stokespacetechnologies } # (✓ 50)   reusable rockets
   - { name: Astranis,         ats: greenhouse, slug: astranis }               # (✓ 89)   satellites
+  - { name: Turion Space,     ats: ashby,      slug: turion-space }           # (✓ 16)   space situational awareness
+  - { name: Electra,          ats: greenhouse, slug: electraaero }            # (✓ 23)   hybrid-electric aircraft
 
   # ------------------------------------------------------------------------- #
   # SILICON / accelerators / chips  (computer-architecture target)
@@ -375,6 +385,21 @@ companies:
   - { name: d-Matrix,    ats: ashby,      slug: d-matrix }                    # (✓ 38)  inference chips
   - { name: Astera Labs, ats: greenhouse, slug: asteralabs }                 # (✓ 178) connectivity silicon (SI / high-speed)
   - { name: MatX,        ats: ashby,      slug: matx }                        # (✓ 40)  LLM-training chips (hardware/RTL)
+  - { name: Efficient Computer, ats: greenhouse, slug: efficientcomputer }   # (✓ 16)  low-power compute silicon
+  - { name: Lemurian Labs, ats: greenhouse, slug: lemurianlabs }             # (✓ 6)   AI accelerator + compiler
+  - { name: PsiQuantum,  ats: greenhouse, slug: psiquantum }                 # (✓ 72)  photonic quantum hardware
+  - { name: Atom Computing, ats: lever,   slug: atomcomputing }              # (✓ 23)  neutral-atom quantum hardware
+  # --- Big-semi incumbents (Workday) — verified tenant/wd_num/site ---
+  - { name: Intel,             ats: workday, tenant: intel,           wd_num: 1, site: External }          # (✓ 647)
+  - { name: Analog Devices,    ats: workday, tenant: analogdevices,   wd_num: 1, site: External }          # (✓ 1043)
+  - { name: Micron,            ats: workday, tenant: micron,          wd_num: 1, site: External }          # (✓ 2741)
+  - { name: NXP Semiconductors, ats: workday, tenant: nxp,            wd_num: 3, site: careers }           # (✓ 785)
+  - { name: Applied Materials, ats: workday, tenant: amat,            wd_num: 1, site: External }          # (✓ 1873)
+  - { name: KLA,               ats: workday, tenant: kla,             wd_num: 1, site: Search }            # (✓ 987)
+  - { name: Cadence,           ats: workday, tenant: cadence,         wd_num: 1, site: External_Careers }  # (✓ 577)
+  - { name: Broadcom,          ats: workday, tenant: broadcom,        wd_num: 1, site: External_Career }   # (✓ 355)
+  - { name: GlobalFoundries,   ats: workday, tenant: globalfoundries, wd_num: 1, site: External }          # (✓ 630)
+  - { name: Marvell,           ats: workday, tenant: marvell,         wd_num: 1, site: MarvellCareers2 }   # (✓ 31)
 
   # ------------------------------------------------------------------------- #
   # EV / energy / hard-tech
@@ -384,23 +409,27 @@ companies:
   - { name: Base Power,   ats: ashby,      slug: base-power }                # (✓ 173) grid / battery hardware
   - { name: Form Energy,  ats: ashby,      slug: formenergy }                # (✓ 186) grid storage
   - { name: KoBold Metals, ats: greenhouse, slug: koboldmetals }             # (✓ 33)  AI-driven exploration
+  - { name: Radiant,      ats: ashby,      slug: radiant }                   # (✓ 28)  portable nuclear microreactors
   - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
 
-  # NOTE: Only NVIDIA remains from "big tech" — pure software / AI-lab / fintech
-  # boards (OpenAI, Anthropic, Databricks, Scale, Snowflake, Roblox, Pinterest,
-  # Coinbase, Stripe, Reddit, Ramp) were removed: they don't post the
-  # hardware/firmware/AV intern roles this watcher targets.
+  # ------------------------------------------------------------------------- #
+  # BIG TECH — hardware-relevant only (NVIDIA is in SILICON above)
+  # ------------------------------------------------------------------------- #
+  - { name: Amazon, ats: amazon }   # custom amazon.jobs adapter; covers Lab126,
+                                    # Annapurna/AWS silicon, Devices, Robotics.
+                                    # Optional `queries: [...]` overrides the
+                                    # default hardware/firmware intern query set.
+  - { name: HP, ats: workday, tenant: hp, wd_num: 5, site: ExternalCareerSite }       # (✓ 751)  PCs / print / hardware
 
   # ------------------------------------------------------------------------- #
-  # NOT INCLUDED — these serve careers from a CUSTOM site (no public ATS JSON),
-  # or their board was empty/renamed when probed (2026-08-17). Add once you can
-  # confirm an ATS slug or write a custom adapter:
-  #   Custom career sites: Apple (jobs.apple.com), Tesla, Boston Dynamics,
-  #     Cruise (GM, winding down), Aurora, Luminar, Ouster, Ambarella, SiFive,
-  #     Rivos, Hailo, Groq, Ayar Labs, Innoviz.
-  #   Workday (add like NVIDIA once you grab tenant/wd_num/site from an apply
-  #     URL): Intel, AMD, Qualcomm, Analog Devices, TI, NXP, Applied Materials,
-  #     Symbotic, Oshkosh.
+  # NOT INCLUDED — custom/auth-gated career sites (no simple public JSON), or an
+  # empty/renamed board when probed (2026-08-17). Would each need a custom
+  # adapter or a discovered path:
+  #   Auth-gated APIs: Apple (jobs.apple.com, needs CSRF/session — 401/404),
+  #     Qualcomm (Eightfold, 403), AMD, Texas Instruments, Microchip, onsemi,
+  #     Qorvo, Skyworks, Western Digital, Renesas, Lam Research, Synopsys.
+  #   Custom career sites: Tesla, Google, Meta, Microsoft, Boston Dynamics,
+  #     Cruise, Aurora, Luminar, Ouster, Ambarella, SiFive, Rivos, Hailo, Groq.
   #   Probed but empty/renamed: Applied Intuition, Gatik, Pony.ai, Overland AI,
-  #     Firefly, Impulse Space, Joby, Beta, Wisk, QuantumScape.
+  #     Firefly, Impulse Space, Joby, Beta, Wisk, QuantumScape, Serve, Espressif.
   # ------------------------------------------------------------------------- #

@@ -472,6 +472,23 @@ class TestFetchMapping(unittest.TestCase):
         self.assertEqual(jobs[0]["id"], "ashby:cobot:u1")
         self.assertEqual(jobs[0]["content"], "ros2 and slam")
 
+    def test_map_amazon(self):
+        jobs = [{
+            "id_icims": "3201696", "title": "ASIC Design Engineer Intern",
+            "job_path": "/en/jobs/3201696/asic-design-engineer-intern",
+            "normalized_location": "Sunnyvale, California, USA",
+            "description_short": "<p>Design <b>ASIC</b></p>",
+            "basic_qualifications": "<li>Verilog</li>",
+            "posted_date": "March 11, 2026",
+        }]
+        out = fetch.map_amazon("Amazon", jobs)
+        self.assertEqual(out[0]["id"], "amazon:3201696")
+        self.assertEqual(out[0]["url"],
+                         "https://www.amazon.jobs/en/jobs/3201696/asic-design-engineer-intern")
+        self.assertEqual(out[0]["location"], "Sunnyvale, California, USA")
+        self.assertIn("ASIC", out[0]["content"])
+        self.assertIn("Verilog", out[0]["content"])
+
     def test_map_workday(self):
         posting = {
             "title": "New Grad HW Engineer",
