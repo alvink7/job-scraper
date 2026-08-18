@@ -29,6 +29,10 @@ gates:
   max_years: 3                        # a role wanting N+ years (N>=this) fails
   # Optional override of the internship signal terms for intern_only mode:
   # intern_terms: [intern, internship, "co-op", coop]
+  season: summer                      # summer | any. "summer" drops titles that
+                                      # name a different season; keeps "summer …"
+                                      # and season-unspecified intern titles.
+  exclude_seasons: [fall, autumn, winter, spring]
   exclude_title:
     # --- seniority ---
     - senior

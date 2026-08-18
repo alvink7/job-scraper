@@ -20,7 +20,8 @@ data-science roles by title.
 2. **Score** (`match.py`) — the deterministic engine:
    - **Hard gates** run first: seniority + ML-role title exclusion, an
      **intern-only** gate (the title must say intern/internship/co-op, plus
-     "N+ years" detection), and a US/Bay-Area/Remote location allowlist.
+     "N+ years" detection), a **summer** season gate (drops titles naming a
+     different season), and a US/Bay-Area/Remote location allowlist.
    - **Weighted scoring**: `core` (5) / `strong` (3) / `supporting` (1) keyword
      categories, with title hits worth 2× body hits and body hits capped per
      category so keyword-stuffed JDs can't dominate. Word-boundary/phrase aware

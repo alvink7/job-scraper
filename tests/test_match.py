@@ -232,6 +232,36 @@ class TestInternOnlyGate(unittest.TestCase):
         self.assertTrue(r["hard_fail"].startswith("excluded title term"))
 
 
+class TestSeasonGate(unittest.TestCase):
+    def setUp(self):
+        import copy
+        cfg = copy.deepcopy(CONFIG)
+        cfg["gates"]["career_stage"] = "intern_only"
+        cfg["gates"]["season"] = "summer"
+        cfg["gates"]["exclude_seasons"] = ["fall", "autumn", "winter", "spring"]
+        self.m = Matcher(cfg)
+
+    def test_summer_title_passes(self):
+        r = self.m.score_job(job("LiDAR Perception Intern, Summer 2027",
+                                 "lidar internship"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_season_unspecified_passes(self):
+        r = self.m.score_job(job("2027 Firmware Engineer Intern",
+                                 "firmware internship"))
+        self.assertEqual(r["hard_fail"], "")
+
+    def test_fall_title_dropped(self):
+        r = self.m.score_job(job("Firmware Intern [Fall 2026]",
+                                 "firmware internship"))
+        self.assertEqual(r["hard_fail"], "non-summer season: fall")
+
+    def test_spring_title_dropped(self):
+        r = self.m.score_job(job("Robotics Intern - Spring 2027",
+                                 "robotics internship"))
+        self.assertEqual(r["hard_fail"], "non-summer season: spring")
+
+
 class TestLocationGate(unittest.TestCase):
     def setUp(self):
         self.m = Matcher(CONFIG)

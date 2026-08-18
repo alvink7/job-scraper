@@ -119,6 +119,15 @@ class Matcher:
         intern_only_terms = gates.get("intern_terms", default_intern_only)
         self._intern_only_res = [_compile_term(s) for s in intern_only_terms]
 
+        # Season targeting. season="summer" drops titles naming a different
+        # season (keeps "summer …" and season-unspecified intern titles).
+        self.season = gates.get("season", "any")
+        default_exclude_seasons = ["fall", "autumn", "winter", "spring"]
+        self._season_exclude_res = [
+            (t, _compile_term(t))
+            for t in gates.get("exclude_seasons", default_exclude_seasons)
+        ]
+
     # ------------------------------------------------------------------ #
     # Hard gates
     # ------------------------------------------------------------------ #
@@ -141,6 +150,15 @@ class Matcher:
 
     def _has_intern_signal(self, full_text):
         return any(rx.search(full_text) for rx in self._intern_res)
+
+    def _gate_season(self, title_text):
+        """Return hard_fail reason, or ''. Only active when season == 'summer'."""
+        if self.season != "summer":
+            return ""
+        for term, rx in self._season_exclude_res:
+            if rx.search(title_text):
+                return f"non-summer season: {term}"
+        return ""
 
     def _gate_career_stage(self, title_text, full_text):
         """Return (hard_fail_reason, force_partial)."""
@@ -234,6 +252,12 @@ class Matcher:
             out["hard_fail"] = fail
             return out
         force_partial = force_partial or fp
+
+        # Gate (b2): season targeting.
+        fail = self._gate_season(title_text)
+        if fail:
+            out["hard_fail"] = fail
+            return out
 
         # Gate (c): location.
         fail, fp = self._gate_location(location, full_text)
