@@ -199,6 +199,39 @@ class TestCareerGate(unittest.TestCase):
         self.assertTrue(r["partial"])
 
 
+class TestInternOnlyGate(unittest.TestCase):
+    def setUp(self):
+        import copy
+        cfg = copy.deepcopy(CONFIG)
+        cfg["gates"]["career_stage"] = "intern_only"
+        # add an ML title exclusion to verify ML roles are dropped
+        cfg["gates"]["exclude_title"] = cfg["gates"]["exclude_title"] + [
+            "machine learning", "deep learning", "research scientist"]
+        self.m = Matcher(cfg)
+
+    def test_internship_passes(self):
+        r = self.m.score_job(job("LiDAR Perception Intern", "lidar internship"))
+        self.assertEqual(r["hard_fail"], "")
+        self.assertFalse(r["partial"])
+
+    def test_new_grad_fails(self):
+        # New-grad is NOT an internship -> rejected in intern_only mode.
+        r = self.m.score_job(job("LiDAR Engineer, New Grad", "lidar new grad role"))
+        self.assertEqual(r["hard_fail"], "not an internship")
+
+    def test_plain_role_no_signal_fails(self):
+        r = self.m.score_job(job("Firmware Engineer", "work on firmware and can bus"))
+        self.assertEqual(r["hard_fail"], "not an internship")
+
+    def test_years_still_fails(self):
+        r = self.m.score_job(job("Firmware Intern", "internship. 5+ years required"))
+        self.assertIn("years", r["hard_fail"])
+
+    def test_ml_title_excluded(self):
+        r = self.m.score_job(job("Machine Learning Intern", "internship. lidar"))
+        self.assertTrue(r["hard_fail"].startswith("excluded title term"))
+
+
 class TestLocationGate(unittest.TestCase):
     def setUp(self):
         self.m = Matcher(CONFIG)

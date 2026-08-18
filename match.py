@@ -98,16 +98,26 @@ class Matcher:
             if channel not in self.route_priority:
                 self.route_priority.append(channel)
 
-        # Intern / new-grad positive signals.
+        # Intern / new-grad positive signals (used by "intern_or_newgrad").
         self._intern_signals = [
-            "intern", "internship", "co-op", "coop", "new grad",
-            "new graduate", "university grad", "recent graduate",
+            "intern", "interns", "internship", "internships", "co-op", "coop",
+            "new grad", "new graduate", "university grad", "recent graduate",
             "early career", "entry level", "entry-level", "college grad",
             "campus", "student", "u.s. new college grad",
             "new college grad", "undergraduate", "apprentice",
             "rotational program", "graduate program", "class of 20",
         ]
         self._intern_res = [_compile_term(s) for s in self._intern_signals]
+
+        # Strict internship-only signals (used by "intern_only"): NO new-grad /
+        # entry-level terms — the role must actually be an internship / co-op.
+        default_intern_only = [
+            "intern", "interns", "internship", "internships", "co-op", "coop",
+            "summer intern", "winter intern", "fall intern", "spring intern",
+            "internship program", "intern program",
+        ]
+        intern_only_terms = gates.get("intern_terms", default_intern_only)
+        self._intern_only_res = [_compile_term(s) for s in intern_only_terms]
 
     # ------------------------------------------------------------------ #
     # Hard gates
@@ -132,10 +142,22 @@ class Matcher:
     def _has_intern_signal(self, full_text):
         return any(rx.search(full_text) for rx in self._intern_res)
 
-    def _gate_career_stage(self, full_text):
+    def _gate_career_stage(self, title_text, full_text):
         """Return (hard_fail_reason, force_partial)."""
         if self.career_stage == "any":
             return "", False
+
+        if self.career_stage == "intern_only":
+            # Must be an actual internship/co-op, and the signal must be in the
+            # TITLE — body mentions of internship programs are boilerplate and
+            # would let full-time roles leak through.
+            years = self._min_years(full_text)
+            if years is not None and years >= self.max_years:
+                return f"requires {years}+ years experience", False
+            if any(rx.search(title_text) for rx in self._intern_only_res):
+                return "", False
+            return "not an internship", False
+
         # intern_or_newgrad
         has_signal = self._has_intern_signal(full_text)
         years = self._min_years(full_text)
@@ -207,7 +229,7 @@ class Matcher:
             return out
 
         # Gate (b): career stage.
-        fail, fp = self._gate_career_stage(full_text)
+        fail, fp = self._gate_career_stage(title_text, full_text)
         if fail:
             out["hard_fail"] = fail
             return out

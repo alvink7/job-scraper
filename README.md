@@ -6,9 +6,11 @@ rigorous **weighted keyword system (no LLM)**, and posts matches to a Discord
 channel via webhook. Runs free on GitHub Actions. Dedup via a SQLite file
 committed back to the repo.
 
-Targeted at an **autonomy / robotics / sensors** candidate (primary), with
-**firmware / embedded** and **computer architecture / silicon** as secondary
-domains, at the **intern / new-grad** stage in the US / Bay Area / Remote.
+Targeted at a **hardware / firmware** and **autonomy / robotics / sensors**
+candidate: embedded/firmware, PCB & signal integrity, radar/LiDAR DSP, robotics
+perception, and GPU-compute-for-perception (CUDA/Jetson) — **not** ML modeling.
+It surfaces **internships only** (US / Bay Area / Remote), and hard-excludes ML /
+data-science roles by title.
 
 ## How it works
 
@@ -16,8 +18,9 @@ domains, at the **intern / new-grad** stage in the US / Bay Area / Remote.
    return a normalized job dict. One dead company logs an error and returns `[]`;
    it never crashes the run.
 2. **Score** (`match.py`) — the deterministic engine:
-   - **Hard gates** run first: seniority exclusion, intern/new-grad eligibility
-     (incl. "N+ years" detection), and a US/Bay-Area/Remote location allowlist.
+   - **Hard gates** run first: seniority + ML-role title exclusion, an
+     **intern-only** gate (the title must say intern/internship/co-op, plus
+     "N+ years" detection), and a US/Bay-Area/Remote location allowlist.
    - **Weighted scoring**: `core` (5) / `strong` (3) / `supporting` (1) keyword
      categories, with title hits worth 2× body hits and body hits capped per
      category so keyword-stuffed JDs can't dominate. Word-boundary/phrase aware
@@ -31,7 +34,7 @@ domains, at the **intern / new-grad** stage in the US / Bay Area / Remote.
    breaks the rest; ties use the `priority` order). The three channels:
    - **autonomous_driving** — AV / robotics / perception / sensors / planning
    - **hardware** — silicon, RTL/FPGA/ASIC, comp-arch, PCB, RF, signal integrity
-   - **software_and_firmware** — firmware / embedded + general software & ML
+   - **software_and_firmware** — firmware / embedded / drivers / motor control
 4. **Dedup** (`store.py`) — SQLite `seen(id, first_seen)`.
 5. **Notify** (`notify.py`) — one Discord embed per job (batched ≤10), posted to
    the routed channel's webhook, showing Company / Location / Score /
@@ -126,8 +129,8 @@ the fetch mapping for every adapter (no network).
 ## Defense companies
 
 Companies tagged `defense: true` in `config.yaml` (Anduril, Shield AI, Saronic,
-Vannevar Labs, Epirus, Castelion, True Anomaly, Hadrian, Chaos Industries) print
-a `[DEFENSE]` flag in the run log. Remove any entry you don't want to track.
+Chaos Industries, Vannevar Labs, Epirus, True Anomaly, Allen Control Systems)
+print a `[DEFENSE]` flag in the run log. Remove any entry you don't want to track.
 
 ## Extending
 

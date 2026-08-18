@@ -25,9 +25,12 @@ matching:
   weights: { core: 5, strong: 3, supporting: 1, negative: -2 }
 
 gates:
-  career_stage: intern_or_newgrad     # or "any" to disable the stage gate
+  career_stage: intern_only           # intern_only | intern_or_newgrad | any
   max_years: 3                        # a role wanting N+ years (N>=this) fails
+  # Optional override of the internship signal terms for intern_only mode:
+  # intern_terms: [intern, internship, "co-op", coop]
   exclude_title:
+    # --- seniority ---
     - senior
     - staff
     - principal
@@ -45,6 +48,16 @@ gates:
     - architect
     - distinguished
     - expert
+    # --- ML / data-science roles (out of scope: hardware/firmware/AV only) ---
+    - machine learning
+    - deep learning
+    - "ml engineer"
+    - data scientist
+    - data science
+    - nlp
+    - llm
+    - generative ai
+    - research scientist
   # Location allowlist. Substring match against location (or body if location is
   # empty). Empty list [] disables the gate. Favors US / Bay Area / Remote.
   location_any:
@@ -126,10 +139,8 @@ routes:
         - open3d
         - jetson
         - cuda
-        - ml for robotics
-        - foundation models
 
-    hardware:                         # silicon, EE, RF, sensor hardware
+    hardware:                         # silicon, EE, RF, sensor hardware, PCB
       webhook_env: DISCORD_WEBHOOK_HARDWARE
       terms:
         - rtl
@@ -143,15 +154,17 @@ routes:
         - oscilloscope
         - dsp
 
-    software_and_firmware:            # firmware / embedded + general SW/ML
+    software_and_firmware:            # firmware / embedded + general software
       webhook_env: DISCORD_WEBHOOK_SWFW
       terms:
         - firmware
         - embedded
         - rtos
         - microcontroller
+        - device drivers
         - board bring-up
         - can bus
+        - motor control
         - i2c/spi/uart
         - c++
         - c language
@@ -161,7 +174,6 @@ routes:
         - git
         - real-time
         - benchmarking
-        - machine learning
 
 # =============================================================================
 # KEYWORDS — grouped by category. Weights come from matching.weights above.
@@ -193,26 +205,24 @@ keywords:
   # STRONG (weight 3) — strongly-relevant skills
   # --------------------------------------------------------------------- #
   strong:
-    # compute / robotics / systems
-    cuda: [cuda, gpu kernel, gpu compute, nvdec, tensorrt]
-    jetson: [jetson, orin, jetson orin, drive agx]
+    # compute / robotics / systems (GPU compute for perception — NOT ML modeling)
+    cuda: [cuda, gpu kernel, gpu compute, nvdec, cuda kernel, gpu acceleration]
+    jetson: [jetson, orin, jetson orin, drive agx, jetson orin nano]
     ros: [ros, ros2, "ros 2", robot operating system]
     open3d: [open3d, pcl, point cloud library]
-    computer vision: [computer vision, opencv, 3d geometry, 3d computational geometry, image processing]
-    dsp: [dsp, digital signal processing, signal processing, fft]
+    computer vision: [computer vision, opencv, 3d geometry, 3d computational geometry, image processing, rigid transform]
+    dsp: [dsp, digital signal processing, signal processing, fft, range-doppler map, butterworth, peak detection, digital filter, filter design]
     state estimation: [state estimation, kalman, kalman filter, ekf, bayesian filtering, particle filter, factor graph]
-    control systems: [control systems, control theory, model predictive control, mpc, feedback control, pid]
-    # ML / ambitions (candidate wants to grow into learning-based autonomy)
-    machine learning: [machine learning, deep learning, neural network, pytorch, tensorflow]
-    ml for robotics: [reinforcement learning, imitation learning, robot learning, end-to-end learning, "end to end learning"]
-    foundation models: [foundation model, foundation models, world model, world models, vision-language, "vla model"]
+    control systems: [control systems, control theory, model predictive control, mpc, feedback control, pid, pid controller]
     # firmware / embedded
-    firmware: [firmware, firmware development, firmware engineer]
-    embedded: [embedded, embedded systems, embedded software, embedded linux, embedded c]
-    rtos: [rtos, freertos, zephyr, real-time operating system]
-    microcontroller: [microcontroller, mcu, stm32, esp32, arm cortex, cortex-m]
-    can bus: [can bus, canbus, controller area network, canopen]
-    board bring-up: [board bring-up, board bringup, bring-up, hardware bring-up]
+    firmware: [firmware, firmware development, firmware engineer, embedded firmware]
+    embedded: [embedded, embedded systems, embedded software, embedded linux, embedded c, embedded development]
+    rtos: [rtos, freertos, zephyr, real-time operating system, esp-idf, task notification]
+    microcontroller: [microcontroller, mcu, stm32, esp32, esp32-s2, arm cortex, cortex-m, raspberry pi, compute module, cm4]
+    device drivers: [device driver, device drivers, driver development, bootloader, dma, interrupt, isr, hal, register-level]
+    can bus: [can bus, canbus, controller area network, canopen, ecu, vehicle bus]
+    board bring-up: [board bring-up, board bringup, bring-up, hardware bring-up, board validation]
+    motor control: [motor control, bldc, field-oriented control, foc, motor driver, encoder]
     # computer architecture / silicon
     rtl: [rtl, rtl design, register transfer level]
     verilog: [verilog, systemverilog, system verilog, vhdl]
@@ -229,11 +239,11 @@ keywords:
     c language: [embedded c, c programming, bare-metal, baremetal]   # never a lone "c"
     python: [python, numpy, scipy]
     matlab: [matlab, simulink]
-    pcb: [pcb, pcb design, pcb layout, altium, kicad, schematic capture]
-    signal integrity: [signal integrity, controlled impedance, high-speed, emc]
-    i2c/spi/uart: [i2c, spi, uart, usart]
-    oscilloscope: [oscilloscope, logic analyzer, jtag, debugger]
-    benchmarking: [benchmarking, profiling, roofline, performance optimization, latency, throughput]
+    pcb: [pcb, pcb design, pcb layout, altium, altium designer, kicad, schematic capture, mixed-signal, gerber, layout]
+    signal integrity: [signal integrity, controlled impedance, high-speed, emc, termination, impedance matching, reflection]
+    i2c/spi/uart: [i2c, spi, uart, usart, usb]
+    oscilloscope: [oscilloscope, logic analyzer, jtag, debugger, multimeter, bench testing]
+    benchmarking: [benchmarking, profiling, roofline, performance optimization, latency, throughput, arithmetic intensity]
     linux: [linux, unix, posix]
     git: [git, github, version control, ci/cd]
     real-time: [real-time, real time, low-latency, deterministic]
@@ -277,6 +287,16 @@ companies:
   - { name: Neuralink,             ats: greenhouse, slug: neuralink }          # (✓ 76)  BCI / embedded/sensors
   - { name: Verkada,               ats: greenhouse, slug: verkada }            # (✓ 286) cameras / edge sensors
   - { name: Samsara,               ats: greenhouse, slug: samsara }            # (✓ 270) IoT / fleet sensors
+  - { name: Aeva,                  ats: lever,      slug: aeva }               # (✓ 45)  FMCW lidar / radar-on-chip
+  - { name: Torc Robotics,         ats: greenhouse, slug: torcrobotics }       # (✓ 58)  AV trucking (Daimler)
+  - { name: Motional,              ats: greenhouse, slug: motional }           # (✓ 83)  AV robotaxi
+  - { name: Bot Auto,              ats: greenhouse, slug: botauto }            # (✓ 21)  AV trucking
+  - { name: "1X",                  ats: ashby,      slug: "1x" }               # (✓ 81)  humanoid robots
+  - { name: Apptronik,             ats: greenhouse, slug: apptronik }          # (✓ 79)  humanoid robots
+  - { name: Agility Robotics,      ats: greenhouse, slug: agilityrobotics }    # (✓ 64)  humanoid robots
+  - { name: Diligent Robotics,     ats: greenhouse, slug: diligentrobotics }   # (✓ 15)  service robots
+  - { name: Path Robotics,         ats: greenhouse, slug: pathrobotics }       # (✓ 50)  welding robots
+  - { name: Gecko Robotics,        ats: ashby,      slug: gecko-robotics }     # (✓ 18)  inspection robots
 
   # ------------------------------------------------------------------------- #
   # DEFENSE / national security   [DEFENSE]  — remove any you don't want
@@ -288,12 +308,18 @@ companies:
   - { name: Vannevar Labs,  ats: greenhouse, slug: vannevarlabs,      defense: true } # (✓ 27)   defense software
   - { name: Epirus,         ats: greenhouse, slug: epirus,            defense: true } # (✓ 39)   directed energy / RF
   - { name: True Anomaly,   ats: greenhouse, slug: trueanomalyinc,    defense: true } # (✓ 161)  space defense
+  - { name: Allen Control Systems, ats: ashby, slug: allen-control-systems, defense: true } # (✓ 83) counter-drone robotics/controls
 
   # ------------------------------------------------------------------------- #
   # SPACE / aerospace hardware
   # ------------------------------------------------------------------------- #
   - { name: SpaceX,           ats: greenhouse, slug: spacex }                  # (✓ 2107) launch / Starlink
+  - { name: Rocket Lab,       ats: greenhouse, slug: rocketlab }              # (✓ 409)  launch / space systems
   - { name: Relativity Space, ats: greenhouse, slug: relativity }             # (✓ 365)  3D-printed rockets
+  - { name: Vast,             ats: greenhouse, slug: vast }                   # (✓ 167)  space stations
+  - { name: Muon Space,       ats: greenhouse, slug: muonspace }              # (✓ 100)  earth-observation sats
+  - { name: Varda Space,      ats: greenhouse, slug: vardaspace }             # (✓ 95)   in-space manufacturing
+  - { name: Ursa Major,       ats: greenhouse, slug: ursamajor }              # (✓ 83)   rocket propulsion
   - { name: Stoke Space,      ats: greenhouse, slug: stokespacetechnologies } # (✓ 50)   reusable rockets
   - { name: Astranis,         ats: greenhouse, slug: astranis }               # (✓ 89)   satellites
 
@@ -308,40 +334,34 @@ companies:
   - { name: Rain AI,     ats: ashby,      slug: rain }                        # (✓ 48)  neuromorphic
   - { name: SambaNova,   ats: greenhouse, slug: sambanovasystems }           # (✓ 38)  AI chips
   - { name: d-Matrix,    ats: ashby,      slug: d-matrix }                    # (✓ 38)  inference chips
+  - { name: Astera Labs, ats: greenhouse, slug: asteralabs }                 # (✓ 178) connectivity silicon (SI / high-speed)
+  - { name: MatX,        ats: ashby,      slug: matx }                        # (✓ 40)  LLM-training chips (hardware/RTL)
 
   # ------------------------------------------------------------------------- #
   # EV / energy / hard-tech
   # ------------------------------------------------------------------------- #
   - { name: Lucid Motors, ats: greenhouse, slug: lucidmotors }               # (✓ 324) EV
+  - { name: Archer Aviation, ats: greenhouse, slug: archer }                 # (✓)     eVTOL aircraft
+  - { name: Base Power,   ats: ashby,      slug: base-power }                # (✓ 173) grid / battery hardware
   - { name: Form Energy,  ats: ashby,      slug: formenergy }                # (✓ 186) grid storage
   - { name: KoBold Metals, ats: greenhouse, slug: koboldmetals }             # (✓ 33)  AI-driven exploration
   - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
 
-  # ------------------------------------------------------------------------- #
-  # BIG TECH / AI labs  (broad — the keyword gates surface only the systems /
-  # silicon / perception / embedded roles among these)
-  # ------------------------------------------------------------------------- #
-  - { name: OpenAI,     ats: ashby,      slug: openai }                       # (✓ 738)
-  - { name: Anthropic,  ats: greenhouse, slug: anthropic }                   # (✓ 455)
-  - { name: Databricks, ats: greenhouse, slug: databricks }                  # (✓ 805)
-  - { name: Scale AI,   ats: greenhouse, slug: scaleai }                     # (✓ 209)
-  - { name: Snowflake,  ats: ashby,      slug: snowflake }                   # (✓ 384)
-  - { name: Roblox,     ats: greenhouse, slug: roblox }                      # (✓ 227) engine / systems
-  - { name: Pinterest,  ats: greenhouse, slug: pinterest }                   # (✓ 220)
-  - { name: Coinbase,   ats: greenhouse, slug: coinbase }                    # (✓ 169)
-  - { name: Stripe,     ats: greenhouse, slug: stripe }                      # (✓ 574)
-  - { name: Reddit,     ats: greenhouse, slug: reddit }                      # (✓ 151)
-  - { name: Ramp,       ats: ashby,      slug: ramp }                        # (✓ 136)
+  # NOTE: Only NVIDIA remains from "big tech" — pure software / AI-lab / fintech
+  # boards (OpenAI, Anthropic, Databricks, Scale, Snowflake, Roblox, Pinterest,
+  # Coinbase, Stripe, Reddit, Ramp) were removed: they don't post the
+  # hardware/firmware/AV intern roles this watcher targets.
 
   # ------------------------------------------------------------------------- #
   # NOT INCLUDED — these serve careers from a CUSTOM site (no public ATS JSON),
-  # or their board was empty/renamed when probed on 2026-08-17. Add once you can
+  # or their board was empty/renamed when probed (2026-08-17). Add once you can
   # confirm an ATS slug or write a custom adapter:
   #   Custom career sites: Apple (jobs.apple.com), Tesla, Boston Dynamics,
-  #     Cruise (GM, winding down), Aurora, Luminar, Ouster, Groq, Ayar Labs.
+  #     Cruise (GM, winding down), Aurora, Luminar, Ouster, Ambarella, SiFive,
+  #     Rivos, Hailo, Groq, Ayar Labs, Innoviz.
   #   Workday (add like NVIDIA once you grab tenant/wd_num/site from an apply
-  #     URL): Intel, AMD, Qualcomm, Applied Materials, Meta, Amazon, Microsoft.
-  #   Probed but empty/renamed: Applied Intuition, Gatik, Bear Robotics,
-  #     Skild AI, Chef Robotics, Castelion, Hadrian, Commonwealth Fusion,
-  #     Overland AI, Serve Robotics, K2 Space.
+  #     URL): Intel, AMD, Qualcomm, Analog Devices, TI, NXP, Applied Materials,
+  #     Symbotic, Oshkosh.
+  #   Probed but empty/renamed: Applied Intuition, Gatik, Pony.ai, Overland AI,
+  #     Firefly, Impulse Space, Joby, Beta, Wisk, QuantumScape.
   # ------------------------------------------------------------------------- #
