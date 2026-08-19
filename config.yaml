@@ -188,6 +188,17 @@ routes:
         - asic
         - computer architecture
         - design verification
+        - digital design
+        - physical design
+        - analog design
+        - power electronics
+        - battery management
+        - rf design
+        - soc integration
+        - high-speed io
+        - hardware validation
+        - sensors hardware
+        - semiconductor
         - pcb
         - signal integrity
         - oscilloscope
@@ -255,20 +266,31 @@ keywords:
     control systems: [control systems, control theory, model predictive control, mpc, feedback control, pid, pid controller]
     # firmware / embedded
     firmware: [firmware, firmware development, firmware engineer, embedded firmware]
-    embedded: [embedded, embedded systems, embedded software, embedded linux, embedded c, embedded development]
-    rtos: [rtos, freertos, zephyr, real-time operating system, esp-idf, task notification]
-    microcontroller: [microcontroller, mcu, stm32, esp32, esp32-s2, arm cortex, cortex-m, raspberry pi, compute module, cm4]
-    device drivers: [device driver, device drivers, driver development, bootloader, dma, interrupt, isr, hal, register-level]
-    can bus: [can bus, canbus, controller area network, canopen, ecu, vehicle bus]
+    embedded: [embedded, embedded systems, embedded software, embedded linux, embedded c, embedded development, yocto, buildroot, petalinux, u-boot, device tree, board support package, bsp, linux kernel, kernel driver]
+    rtos: [rtos, freertos, zephyr, real-time operating system, esp-idf, task notification, threadx, mbed]
+    microcontroller: [microcontroller, mcu, stm32, esp32, esp32-s2, arm cortex, cortex-m, raspberry pi, compute module, cm4, msp430, nrf52, nordic, risc-v]
+    device drivers: [device driver, device drivers, driver development, bootloader, dma, interrupt, isr, hal, register-level, secure boot, ota update]
+    can bus: [can bus, canbus, controller area network, canopen, ecu, vehicle bus, lin bus, automotive ethernet]
     board bring-up: [board bring-up, board bringup, bring-up, hardware bring-up, board validation]
-    motor control: [motor control, bldc, field-oriented control, foc, motor driver, encoder]
-    # computer architecture / silicon
-    rtl: [rtl, rtl design, register transfer level]
-    verilog: [verilog, systemverilog, system verilog, vhdl]
-    fpga: [fpga, fpga design]
-    asic: [asic, soc, system-on-chip, vlsi]
-    computer architecture: [computer architecture, microarchitecture, micro-architecture, cpu architecture, gpu architecture, accelerator design]
-    design verification: [design verification, uvm, functional verification, testbench]
+    motor control: [motor control, bldc, field-oriented control, foc, motor driver, encoder, inverter]
+    # computer architecture / digital design / silicon
+    rtl: [rtl, rtl design, register transfer level, lint, clock domain crossing, cdc]
+    verilog: [verilog, systemverilog, system verilog, vhdl, chisel]
+    fpga: [fpga, fpga design, vivado, quartus, vitis, hls, high-level synthesis, xilinx, altera]
+    asic: [asic, soc, system-on-chip, vlsi, tapeout, tape-out, netlist]
+    computer architecture: [computer architecture, microarchitecture, micro-architecture, cpu architecture, gpu architecture, accelerator design, cache coherence, memory hierarchy, pipelining]
+    design verification: [design verification, uvm, functional verification, testbench, formal verification, assertion, sva, code coverage, emulation, hardware verification]
+    digital design: [digital design, logic design, asic design, rtl coding, synthesizable]
+    physical design: [physical design, place and route, place-and-route, logic synthesis, timing closure, static timing analysis, floorplanning, clock tree, drc, lvs, parasitic extraction, ppa, innovus, primetime]
+    analog design: [analog design, mixed-signal, mixed signal, analog ic, analog circuit, analog front end, afe, "ams design", cadence virtuoso, spice, spectre]
+    power electronics: [power electronics, power management, pmic, dc-dc, buck converter, boost converter, power supply, smps, power delivery, power integrity]
+    battery management: [battery management, "bms", battery management system, cell balancing, battery pack, state of charge]
+    rf design: [rf design, rf engineer, radio frequency, antenna design, transceiver, phased array, s-parameters, "rf front end", wireless hardware]
+    soc integration: [soc integration, network-on-chip, "noc", axi, amba, chiplet, ucie, die-to-die, interconnect]
+    high-speed io: [serdes, high-speed serial, high speed serial, pcie, ddr, hbm, memory controller, ethernet phy]
+    hardware validation: [post-silicon validation, silicon bring-up, hardware validation, system validation, bench validation, characterization, dft, design for test, scan chain, ate]
+    sensors hardware: [mems, imu, accelerometer, gyroscope, magnetometer, adc, dac, data converter, sensor interface, capacitive sensing]
+    semiconductor: [semiconductor, process integration, wafer, fabrication, failure analysis, device physics, tcad, yield, reliability engineering, semiconductor test]
 
   # --------------------------------------------------------------------- #
   # SUPPORTING (weight 1) — generic-but-relevant
@@ -388,6 +410,11 @@ companies:
   - { name: MatX,        ats: ashby,      slug: matx }                        # (✓ 40)  LLM-training chips (hardware/RTL)
   - { name: Efficient Computer, ats: greenhouse, slug: efficientcomputer }   # (✓ 16)  low-power compute silicon
   - { name: Lemurian Labs, ats: greenhouse, slug: lemurianlabs }             # (✓ 6)   AI accelerator + compiler
+  - { name: Axelera AI,  ats: ashby,      slug: axelera }                    # (✓ 12)  edge AI inference chips
+  - { name: Furiosa AI,  ats: greenhouse, slug: furiosaai }                  # (✓ 2)   AI inference chips
+  - { name: Extropic,    ats: ashby,      slug: extropic }                   # (✓ 8)   thermodynamic computing hardware
+  - { name: Baya Systems, ats: greenhouse, slug: bayasystems }              # (✓ 25)  chiplet / NoC interconnect IP
+  - { name: Substrate,   ats: ashby,      slug: substrate }                  # (✓ 7)   semiconductor fabrication
   - { name: PsiQuantum,  ats: greenhouse, slug: psiquantum }                 # (✓ 72)  photonic quantum hardware
   - { name: Atom Computing, ats: lever,   slug: atomcomputing }              # (✓ 23)  neutral-atom quantum hardware
   # --- Big-semi incumbents (Workday) — verified tenant/wd_num/site ---
