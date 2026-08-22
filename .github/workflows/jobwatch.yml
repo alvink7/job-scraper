@@ -3,8 +3,10 @@ name: jobwatch
 
 on:
   schedule:
-    - cron: "0 15 * * *"   # 08:00 America/Los_Angeles (PST) / 07:00 PDT-adjacent
-    - cron: "0 23 * * *"   # 16:00 America/Los_Angeles
+    # Every 15 minutes (~96 runs/day). Requires a PUBLIC repo for unlimited
+    # Actions minutes; on a private repo this would exhaust the free 2,000
+    # min/month in a few days. GitHub may delay/skip some ticks under load.
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -65,5 +67,7 @@ jobs:
             echo "No DB changes to commit."
           else
             git commit -m "chore: update seen.db [skip ci]"
-            git push
+            # Rebase on any concurrent DB commit, then push (retry once).
+            git pull --rebase --autostash origin master || true
+            git push || (git pull --rebase --autostash origin master && git push)
           fi
