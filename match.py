@@ -14,10 +14,15 @@ Determinism: no randomness, no network. Same inputs -> same outputs.
 
 import re
 
-# Boundary lookarounds that tolerate non-word chars like c++, c/c++, i2c, ros2.
-# We do NOT use \b because it breaks on '+' and '/'.
-_BOUND_LEFT = r"(?<![A-Za-z0-9+#/.-])"
-_BOUND_RIGHT = r"(?![A-Za-z0-9+#/.-])"
+# Word-boundary lookarounds. We use these instead of \b because \b breaks on
+# terms whose edges are non-word chars (c++, i2c, ros2). Crucially the class is
+# word-chars only ([A-Za-z0-9_]) — separators like '/', '.', '-' must NOT be in
+# it, or a term glued to one is silently missed (e.g. "intern" in "intern/co-op",
+# or each of "i2c"/"spi"/"uart" in "I2C/SPI/UART"). A term may still CONTAIN
+# those chars internally (e.g. "c/c++", "co-op"); the boundary only guards the
+# term's two ends, so "can" is still blocked inside "scan" and "ros" in "across".
+_BOUND_LEFT = r"(?<![A-Za-z0-9_])"
+_BOUND_RIGHT = r"(?![A-Za-z0-9_])"
 
 _WS_COLLAPSE = re.compile(r"\s+")
 

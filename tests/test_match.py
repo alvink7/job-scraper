@@ -124,6 +124,17 @@ class TestBoundaries(unittest.TestCase):
         r = self.m.score_job(job("Perception Intern", "drive unit calibration"))
         self.assertEqual(r["hard_fail"], "")
 
+    def test_slash_separated_tokens_match(self):
+        # Regression: a term glued to '/' must still match (the AMD miss).
+        r = self.m.score_job(job("Firmware Intern",
+                                 "interfaces over I2C/SPI/UART"))
+        self.assertIn("i2c/spi/uart", r["matched"])
+
+    def test_lidar_camera_slash(self):
+        r = self.m.score_job(job("Intern", "lidar/radar fusion"))
+        self.assertIn("lidar", r["matched"])
+        self.assertIn("radar", r["matched"])
+
     def test_ai_not_in_chair(self):
         # No "ai" keyword configured to falsely hit "chairperson".
         r = self.m.score_job(job("Intern", "chairperson of the committee"))
@@ -218,6 +229,14 @@ class TestInternOnlyGate(unittest.TestCase):
         # New-grad is NOT an internship -> rejected in intern_only mode.
         r = self.m.score_job(job("LiDAR Engineer, New Grad", "lidar new grad role"))
         self.assertEqual(r["hard_fail"], "not an internship")
+
+    def test_intern_slash_coop_title_passes(self):
+        # Regression: "Intern/Co-op" must register as an internship (not be
+        # rejected by the career gate) — the '/' used to hide "intern".
+        r = self.m.score_job(job("2027 Hardware Engineering Intern/Co-op",
+                                 "firmware lidar perception"))
+        self.assertNotEqual(r["hard_fail"], "not an internship")
+        self.assertEqual(r["hard_fail"], "")  # firmware+lidar clears the floor
 
     def test_plain_role_no_signal_fails(self):
         r = self.m.score_job(job("Firmware Engineer", "work on firmware and can bus"))
