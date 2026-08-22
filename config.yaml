@@ -359,6 +359,12 @@ companies:
   - { name: Diligent Robotics,     ats: greenhouse, slug: diligentrobotics }   # (✓ 15)  service robots
   - { name: Path Robotics,         ats: greenhouse, slug: pathrobotics }       # (✓ 50)  welding robots
   - { name: Gecko Robotics,        ats: ashby,      slug: gecko-robotics }     # (✓ 18)  inspection robots
+  - { name: Sanctuary AI,          ats: ashby,      slug: sanctuary }          # (✓ 6)   humanoid robots
+  - { name: Foundation,            ats: ashby,      slug: foundation }         # (✓ 4)   humanoid robots
+  - { name: Fourier,               ats: ashby,      slug: fourier }            # (✓ 7)   humanoid / rehab robots
+  - { name: Locus Robotics,        ats: greenhouse, slug: locusrobotics }      # (✓ 7)   warehouse robots
+  - { name: Built Robotics,        ats: ashby,      slug: built-robotics }     # (✓ 7)   autonomous construction
+  - { name: Outrider,              ats: greenhouse, slug: outrider }           # (✓ 8)   autonomous yard trucks
   - { name: Reliable Robotics,     ats: ashby,      slug: reliable-robotics }  # (✓ 52)  autonomous aviation
   - { name: Skyryse,               ats: greenhouse, slug: skyryse }            # (✓ 14)  aviation autonomy / avionics
   - { name: Nimble,                ats: greenhouse, slug: nimblerobotics }     # (✓ 26)  warehouse robots
@@ -379,6 +385,7 @@ companies:
   - { name: True Anomaly,   ats: greenhouse, slug: trueanomalyinc,    defense: true } # (✓ 161)  space defense
   - { name: Allen Control Systems, ats: ashby, slug: allen-control-systems, defense: true } # (✓ 83) counter-drone robotics/controls
   - { name: Scout AI,       ats: greenhouse, slug: scoutai,           defense: true } # (✓ 29)  autonomy for defense
+  - { name: Palantir,       ats: lever,      slug: palantir,          defense: true } # (✓ 308) defense/intel software+systems
 
   # ------------------------------------------------------------------------- #
   # SPACE / aerospace hardware
@@ -444,6 +451,7 @@ companies:
   - { name: Sila,            ats: greenhouse, slug: silananotechnologies }   # (✓ 30)  silicon anode battery materials
   - { name: Factorial Energy, ats: greenhouse, slug: factorialenergy }       # (✓ 17)  solid-state batteries
   - { name: Solid Power,     ats: greenhouse, slug: solidpower }             # (✓ 13)  solid-state batteries
+  - { name: Regent,          ats: greenhouse, slug: regent }                # (✓ 8)   electric seagliders (marine EV)
   - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
 
   # ------------------------------------------------------------------------- #
@@ -452,8 +460,21 @@ companies:
   - { name: Archer Aviation, ats: greenhouse, slug: archer }                 # (✓)     eVTOL aircraft
   - { name: Base Power,   ats: ashby,      slug: base-power }                # (✓ 173) grid / battery hardware
   - { name: Form Energy,  ats: ashby,      slug: formenergy }                # (✓ 186) grid storage
+  - { name: Helion,       ats: ashby,      slug: helion }                    # (✓ 104) fusion energy
+  - { name: Pacific Fusion, ats: greenhouse, slug: pacificfusion }           # (✓ 29)  fusion energy
   - { name: KoBold Metals, ats: greenhouse, slug: koboldmetals }             # (✓ 33)  AI-driven exploration
   - { name: Radiant,      ats: ashby,      slug: radiant }                   # (✓ 28)  portable nuclear microreactors
+
+  # ------------------------------------------------------------------------- #
+  # MEDICAL DEVICES / NEUROTECH  (embedded / hardware / silicon)
+  # ------------------------------------------------------------------------- #
+  - { name: Butterfly Network, ats: greenhouse, slug: butterflynetwork }     # (✓ 20)  handheld ultrasound (chip-on-transducer)
+  - { name: Noah Medical, ats: greenhouse, slug: noahmedical }               # (✓ 17)  surgical robotics
+
+  # ------------------------------------------------------------------------- #
+  # CONSUMER HARDWARE / WEARABLES
+  # ------------------------------------------------------------------------- #
+  - { name: Oura,         ats: greenhouse, slug: oura }                      # (✓ 104) smart ring (sensors / embedded)
 
   # ------------------------------------------------------------------------- #
   # BIG TECH — hardware-relevant only (NVIDIA is in SILICON above)
