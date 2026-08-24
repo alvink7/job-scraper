@@ -30,9 +30,9 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -65,9 +65,24 @@ jobs:
           git add seen.db
           if git diff --staged --quiet; then
             echo "No DB changes to commit."
-          else
-            git commit -m "chore: update seen.db [skip ci]"
-            # Rebase on any concurrent DB commit, then push (retry once).
-            git pull --rebase --autostash origin master || true
-            git push || (git pull --rebase --autostash origin master && git push)
+            exit 0
           fi
+          git commit -m "chore: update seen.db [skip ci]"
+          # seen.db is a binary SQLite file that can't be 3-way merged, so a
+          # concurrent run's DB commit makes a plain rebase conflict (this is
+          # what previously exited 128). On a rejected push we rebase our single
+          # commit onto origin and keep OUR db (-X ours); worst case a job that
+          # the other run marked seen re-notifies once. Retry a few times for
+          # transient races, and never leave a half-finished rebase behind.
+          for attempt in 1 2 3 4 5; do
+            if git push origin HEAD:master; then
+              echo "Pushed seen.db on attempt $attempt."
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt); rebasing onto origin/master."
+            git fetch origin master
+            git rebase -X ours origin/master || git rebase --abort
+            sleep $((RANDOM % 5 + 1))
+          done
+          echo "Failed to push seen.db after 5 attempts." >&2
+          exit 1
