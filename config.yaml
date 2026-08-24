@@ -365,6 +365,13 @@ companies:
   - { name: Locus Robotics,        ats: greenhouse, slug: locusrobotics }      # (✓ 7)   warehouse robots
   - { name: Built Robotics,        ats: ashby,      slug: built-robotics }     # (✓ 7)   autonomous construction
   - { name: Outrider,              ats: greenhouse, slug: outrider }           # (✓ 8)   autonomous yard trucks
+  - { name: Bedrock Robotics,      ats: ashby,      slug: bedrock-robotics }   # (✓ 34)  autonomous construction (ex-Waymo)
+  - { name: Dexory,                ats: greenhouse, slug: dexory }             # (✓ 31)  warehouse inventory robots
+  - { name: Anybotics,             ats: lever,      slug: anybotics }          # (✓ 17)  legged inspection robots
+  - { name: Glydways,              ats: greenhouse, slug: glydways }           # (✓ 11)  autonomous transit pods
+  - { name: Osaro,                 ats: lever,      slug: osaro }              # (✓ 11)  warehouse pick robots
+  - { name: Cobalt Robotics,       ats: lever,      slug: cobaltrobotics }     # (✓ 10)  security robots
+  - { name: Aescape,               ats: ashby,      slug: aescape }            # (✓ 5)   robotic massage hardware
   - { name: Reliable Robotics,     ats: ashby,      slug: reliable-robotics }  # (✓ 52)  autonomous aviation
   - { name: Skyryse,               ats: greenhouse, slug: skyryse }            # (✓ 14)  aviation autonomy / avionics
   - { name: Nimble,                ats: greenhouse, slug: nimblerobotics }     # (✓ 26)  warehouse robots
@@ -452,6 +459,9 @@ companies:
   - { name: Factorial Energy, ats: greenhouse, slug: factorialenergy }       # (✓ 17)  solid-state batteries
   - { name: Solid Power,     ats: greenhouse, slug: solidpower }             # (✓ 13)  solid-state batteries
   - { name: Regent,          ats: greenhouse, slug: regent }                # (✓ 8)   electric seagliders (marine EV)
+  - { name: Panasonic Energy, ats: phenom, base: "https://careers.na.panasonic.com" } # (✓ 460) EV battery cells
+  - { name: SES AI,          ats: greenhouse, slug: sesai }                 # (✓ 42)  Li-metal EV batteries
+  - { name: Group14,         ats: greenhouse, slug: group14 }              # (✓ 4)   silicon battery materials
   - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
 
   # ------------------------------------------------------------------------- #
@@ -487,6 +497,9 @@ companies:
                                     # JSON); pages newest US roles, gates filter.
                                     # Optional `max_pages: N` (default 40).
   - { name: HP, ats: workday, tenant: hp, wd_num: 5, site: ExternalCareerSite }       # (✓ 751)  PCs / print / hardware
+  - { name: HPE, ats: workday, tenant: hpe, wd_num: 5, site: Jobsathpe }               # (✓ 1063) servers / networking hardware
+  - { name: Samsung, ats: workday, tenant: sec, wd_num: 3, site: Samsung_Careers }     # (✓ 668)  semiconductors / devices
+  - { name: Keysight, ats: phenom, base: "https://jobs.keysight.com" }                # (✓ 604)  test & measurement (EE)
 
   # ------------------------------------------------------------------------- #
   # NOT INCLUDED — still need a discovered endpoint or custom adapter:
@@ -495,8 +508,11 @@ companies:
   #     Workday or a Phenom `careers.<co>.com/api/jobs` path; each needs its real
   #     careers host discovered (many are Phenom/Eightfold/Brassring on a
   #     non-obvious domain, addable via the `phenom` adapter once found).
-  #   Custom career sites: Tesla, Google, Meta, Microsoft, Boston Dynamics,
-  #     Cruise, Aurora, Luminar, Ouster, Ambarella, SiFive, Rivos, Hailo, Groq.
+  #   Custom / bot-protected career sites (need a bespoke adapter): IBM (Coveo +
+  #     Akamai bot-manager; app "careers"/scope "careers2"), Dell, Cisco, Seagate,
+  #     Western Digital, Texas Instruments, Tesla, Google, Meta, Microsoft, Boston
+  #     Dynamics, Cruise, Aurora, Luminar, Ouster, Ambarella, SiFive, Rivos,
+  #     Hailo, Groq, Symbotic, Berkshire Grey, Canoo, Fisker, EVgo, Wallbox.
   #   Traditional auto OEMs / Tier-1s on custom or anti-bot platforms (need a
   #     bespoke adapter): Ford, GM (Umbraco, 404s without a browser session),
   #     Toyota, Honda, Stellantis, Bosch, Aptiv, Magna, Continental, BorgWarner.
