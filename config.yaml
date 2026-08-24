@@ -372,6 +372,7 @@ companies:
   - { name: Osaro,                 ats: lever,      slug: osaro }              # (✓ 11)  warehouse pick robots
   - { name: Cobalt Robotics,       ats: lever,      slug: cobaltrobotics }     # (✓ 10)  security robots
   - { name: Aescape,               ats: ashby,      slug: aescape }            # (✓ 5)   robotic massage hardware
+  - { name: Boston Dynamics, ats: workday, tenant: bostondynamics, wd_num: 1, site: Boston_Dynamics } # (✓ 75) legged/mobile robots
   - { name: Reliable Robotics,     ats: ashby,      slug: reliable-robotics }  # (✓ 52)  autonomous aviation
   - { name: Skyryse,               ats: greenhouse, slug: skyryse }            # (✓ 14)  aviation autonomy / avionics
   - { name: Nimble,                ats: greenhouse, slug: nimblerobotics }     # (✓ 26)  warehouse robots
@@ -429,6 +430,7 @@ companies:
   - { name: Extropic,    ats: ashby,      slug: extropic }                   # (✓ 8)   thermodynamic computing hardware
   - { name: Baya Systems, ats: greenhouse, slug: bayasystems }              # (✓ 25)  chiplet / NoC interconnect IP
   - { name: Substrate,   ats: ashby,      slug: substrate }                  # (✓ 7)   semiconductor fabrication
+  - { name: SiFive, ats: workday, tenant: sifive, wd_num: 1, site: sifivecareers } # (✓ 106) RISC-V CPU IP / silicon
   - { name: PsiQuantum,  ats: greenhouse, slug: psiquantum }                 # (✓ 72)  photonic quantum hardware
   - { name: Atom Computing, ats: lever,   slug: atomcomputing }              # (✓ 23)  neutral-atom quantum hardware
   # --- Big-semi incumbents (Workday) — verified tenant/wd_num/site ---
@@ -508,11 +510,13 @@ companies:
   #     Workday or a Phenom `careers.<co>.com/api/jobs` path; each needs its real
   #     careers host discovered (many are Phenom/Eightfold/Brassring on a
   #     non-obvious domain, addable via the `phenom` adapter once found).
-  #   Custom / bot-protected career sites (need a bespoke adapter): IBM (Coveo +
-  #     Akamai bot-manager; app "careers"/scope "careers2"), Dell, Cisco, Seagate,
-  #     Western Digital, Texas Instruments, Tesla, Google, Meta, Microsoft, Boston
-  #     Dynamics, Cruise, Aurora, Luminar, Ouster, Ambarella, SiFive, Rivos,
-  #     Hailo, Groq, Symbotic, Berkshire Grey, Canoo, Fisker, EVgo, Wallbox.
+  #   Bot-protected APIs (Akamai / Eightfold / auth — blocked from a plain client,
+  #     so unfetchable without a headless browser): IBM (Coveo+Akamai), Tesla
+  #     (403), Google (moved), Microsoft, Meta, Qualcomm (Eightfold 403).
+  #   JS-only SPA career pages (ATS token not in static HTML; needs per-site
+  #     reverse-engineering): Aurora, Ambarella, Groq, Cruise, Texas Instruments,
+  #     Skyworks, Seagate, Dell (Phenom, base TBD), Cisco (Phenom, base TBD),
+  #     Symbotic, Rivos, Hailo, Luminar, Ouster, Canoo, Wolfspeed.
   #   Traditional auto OEMs / Tier-1s on custom or anti-bot platforms (need a
   #     bespoke adapter): Ford, GM (Umbraco, 404s without a browser session),
   #     Toyota, Honda, Stellantis, Bosch, Aptiv, Magna, Continental, BorgWarner.
