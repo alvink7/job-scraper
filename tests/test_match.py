@@ -542,6 +542,97 @@ class TestFetchMapping(unittest.TestCase):
         self.assertIn("ASIC", out[0]["content"])
         self.assertIn("Verilog", out[0]["content"])
 
+    def test_map_smartrecruiters(self):
+        postings = [{
+            "id": "744000123",
+            "name": "Firmware Engineer Intern",
+            "location": {"fullLocation": "San Jose, CA, United States"},
+            "postingUrl": "https://jobs.smartrecruiters.com/WesternDigital/744000123-fw",
+            "releasedDate": "2026-08-01T00:00:00.000Z",
+            "jobAd": {"sections": {
+                "jobDescription": {"text": "<p>Bring up <b>firmware</b> on the SSD.</p>"},
+                "qualifications": {"text": "<li>embedded C, i2c</li>"},
+            }},
+        }]
+        out = fetch.map_smartrecruiters("Western Digital", "WesternDigital", postings)
+        self.assertEqual(out[0]["id"], "smartrecruiters:WesternDigital:744000123")
+        self.assertEqual(out[0]["title"], "Firmware Engineer Intern")
+        self.assertEqual(out[0]["location"], "San Jose, CA, United States")
+        self.assertEqual(
+            out[0]["url"],
+            "https://jobs.smartrecruiters.com/WesternDigital/744000123-fw")
+        self.assertIn("firmware", out[0]["content"].lower())
+        self.assertIn("embedded C", out[0]["content"])
+
+    def test_map_oracle(self):
+        items = [{
+            "Id": 25016731,
+            "Title": "Digital IC Design Engineer",
+            "PrimaryLocation": "Dallas, TX, United States",
+            "PostedDate": "2026-08-21",
+            "ExternalResponsibilitiesStr": "<p>Own <b>RTL</b> design and verification.</p>",
+            "ExternalQualificationsStr": "<li>Verilog, FPGA</li>",
+        }]
+        # with a vanity apply base
+        out = fetch.map_oracle("Texas Instruments", "edbz.fa.us2.oraclecloud.com",
+                               "CX", "https://careers.ti.com/en/sites/CX", items)
+        self.assertEqual(out[0]["id"],
+                         "oracle:edbz.fa.us2.oraclecloud.com:25016731")
+        self.assertEqual(out[0]["title"], "Digital IC Design Engineer")
+        self.assertEqual(out[0]["location"], "Dallas, TX, United States")
+        self.assertEqual(out[0]["url"],
+                         "https://careers.ti.com/en/sites/CX/job/25016731")
+        self.assertIn("RTL", out[0]["content"])
+        self.assertIn("Verilog", out[0]["content"])
+        # without apply base -> canonical Oracle candidate-experience URL
+        out2 = fetch.map_oracle("onsemi", "hctz.fa.us2.oraclecloud.com",
+                                "CX_1001", None, items)
+        self.assertEqual(
+            out2[0]["url"],
+            "https://hctz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/"
+            "en/sites/CX_1001/job/25016731")
+
+    def test_successfactors_parse_and_map(self):
+        search_html = (
+            '<tbody>'
+            '<tr class="data-row"><td class="colTitle">'
+            '<span class="jobTitle hidden-phone">'
+            '<a href="/job/Richardson-Staff-MMIC-Design-Engineer-TX-75081/12345/"'
+            ' class="jobTitle-link">Staff MMIC Design Engineer</a></span>'
+            '<span class="jobLocation">Richardson, TX, US, 75081</span></td></tr>'
+            '<tr class="data-row"><td class="colTitle">'
+            '<a class="jobTitle-link" href="/job/Singapore-Accountant-486058/999/">'
+            'Accountant</a>'
+            '<span class="jobLocation">Singapore, , SG, 486058</span></td></tr>'
+            '</tbody>'
+        )
+        rows = fetch._sf_parse_rows(search_html)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["id"], "12345")
+        self.assertEqual(rows[0]["title"], "Staff MMIC Design Engineer")
+        self.assertEqual(rows[0]["location"], "Richardson, TX, US, 75081")
+        self.assertEqual(rows[0]["path"],
+                         "/job/Richardson-Staff-MMIC-Design-Engineer-TX-75081/12345/")
+        # US filter: keep Richardson, drop Singapore
+        self.assertTrue(fetch._SF_US_RE.search(rows[0]["location"]))
+        self.assertFalse(fetch._SF_US_RE.search(rows[1]["location"]))
+        # body extraction from a detail page
+        detail = ('<div data-careersite-propertyid="description">'
+                  '<p>Design <b>MMIC</b> and <b>RFIC</b> circuits.</p></div>'
+                  '<div data-careersite-propertyid="qualifications">'
+                  '<li>Verilog, RF</li></div>')
+        rows[0]["content"] = fetch._sf_content(detail)
+        self.assertIn("MMIC", rows[0]["content"])
+        self.assertIn("Verilog", rows[0]["content"])
+        # mapping to the normalized schema
+        out = fetch.map_successfactors("Qorvo", "careers.qorvo.com", rows[:1])
+        self.assertEqual(out[0]["id"], "successfactors:careers.qorvo.com:12345")
+        self.assertEqual(out[0]["url"],
+                         "https://careers.qorvo.com/job/"
+                         "Richardson-Staff-MMIC-Design-Engineer-TX-75081/12345/")
+        self.assertEqual(out[0]["location"], "Richardson, TX, US, 75081")
+        self.assertIn("RFIC", out[0]["content"])
+
     def test_map_workday(self):
         posting = {
             "title": "New Grad HW Engineer",

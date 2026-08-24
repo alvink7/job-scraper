@@ -449,6 +449,263 @@ def fetch_phenom(name, base, max_pages=20, page_size=100):
 
 
 # --------------------------------------------------------------------------- #
+# SmartRecruiters (public postings API) — e.g. Western Digital, Bosch, Renesas
+# --------------------------------------------------------------------------- #
+# The list endpoint (…/postings) carries title + location but NOT the JD body;
+# the body lives on the per-posting detail (…/postings/{id}). We page the US
+# postings (country facet — the whole config is US-scoped, so this bounds the
+# volume) then fetch detail for each to recover the description for scoring.
+def _sr_content(posting):
+    sections = ((posting.get("jobAd") or {}).get("sections") or {})
+    parts = []
+    for key in ("jobDescription", "qualifications", "additionalInformation"):
+        txt = (sections.get(key) or {}).get("text") or ""
+        if txt:
+            parts.append(_strip_html(txt))
+    return " ".join(parts).strip()
+
+
+def map_smartrecruiters(company, slug, postings):
+    jobs = []
+    for p in postings:
+        loc = (p.get("location") or {}).get("fullLocation", "") or ""
+        jobs.append({
+            "id": f"smartrecruiters:{slug}:{p.get('id', '')}",
+            "company": company,
+            "title": p.get("name", "") or "",
+            "location": loc,
+            "url": p.get("postingUrl") or p.get("applyUrl") or "",
+            "content": _sr_content(p),
+            "updated": str(p.get("releasedDate", "") or ""),
+        })
+    return jobs
+
+
+def fetch_smartrecruiters(company, slug, country="us", max_pages=15,
+                          page_size=100, max_details=400):
+    base = f"https://api.smartrecruiters.com/v1/companies/{slug}/postings"
+    listings = []
+    try:
+        offset = 0
+        for _page in range(max_pages):
+            url = f"{base}?country={country}&limit={page_size}&offset={offset}"
+            data = _get(url)
+            content = data.get("content", []) or []
+            if not content:
+                break
+            listings.extend(content)
+            total = data.get("totalFound", 0)
+            offset += page_size
+            if not total or offset >= total:
+                break
+            time.sleep(0.3)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [smartrecruiters:{slug}] list ERROR: {e}")
+    # Recover the JD body per posting; cap the count to bound runtime, and on a
+    # detail-fetch error fall back to the list entry so the role still surfaces.
+    detailed = []
+    for p in listings[:max_details]:
+        pid = p.get("id")
+        if not pid:
+            continue
+        try:
+            detailed.append(_get(f"{base}/{pid}"))
+        except Exception:  # noqa: BLE001
+            detailed.append(p)
+        time.sleep(0.1)
+    return map_smartrecruiters(company, slug, detailed)
+
+
+# --------------------------------------------------------------------------- #
+# Oracle Recruiting Cloud (Oracle HCM "Candidate Experience") — e.g. TI,
+# Honeywell, Denso. The public REST endpoint lives on the tenant's
+# {tenant}.fa.{dc}.oraclecloud.com host (vanity careers domains only serve the
+# SPA). Discover host + siteNumber by fetching the careers page and grepping for
+# `*.fa.*.oraclecloud.com` and `siteNumber`.
+# --------------------------------------------------------------------------- #
+def _oracle_content(item):
+    parts = []
+    for k in ("ShortDescriptionStr", "ExternalDescriptionStr",
+              "ExternalResponsibilitiesStr", "ExternalQualificationsStr"):
+        v = item.get(k) or ""
+        if v:
+            parts.append(_strip_html(v))
+    # de-dup identical fragments while preserving order
+    return " ".join(dict.fromkeys(p for p in parts if p)).strip()
+
+
+def map_oracle(company, host, site, apply_base, items):
+    jobs = []
+    for it in items:
+        jid = str(it.get("Id", "") or "")
+        if apply_base:
+            url = f"{apply_base.rstrip('/')}/job/{jid}"
+        else:
+            url = (f"https://{host}/hcmUI/CandidateExperience/en/"
+                   f"sites/{site}/job/{jid}")
+        jobs.append({
+            "id": f"oracle:{host}:{jid}",
+            "company": company,
+            "title": it.get("Title", "") or "",
+            "location": it.get("PrimaryLocation", "") or "",
+            "url": url,
+            "content": _oracle_content(it),
+            "updated": str(it.get("PostedDate", "") or ""),
+        })
+    return jobs
+
+
+def fetch_oracle(company, host, site, apply_base=None, country="US",
+                 max_pages=20, page_size=50, max_details=200):
+    api = (f"https://{host}/hcmRestApi/resources/latest"
+           "/recruitingCEJobRequisitions")
+    # Newest-first paging: new reqs surface on page 1, so (as with the Apple
+    # adapter) dedup catches them the run they post without pulling everything.
+    us_items = []
+    try:
+        offset = 0
+        for _page in range(max_pages):
+            url = (f"{api}?onlyData=true"
+                   "&expand=requisitionList.secondaryLocations"
+                   f"&finder=findReqs;siteNumber={site},"
+                   f"sortBy=POSTING_DATES_DESC,limit={page_size},offset={offset}")
+            data = _get(url)
+            items = data.get("items") or []
+            rl = (items[0].get("requisitionList") if items else []) or []
+            if not rl:
+                break
+            us_items.extend(
+                j for j in rl if (j.get("PrimaryLocationCountry") or "") == country
+            )
+            total = (items[0].get("TotalJobsCount") if items else 0) or 0
+            offset += page_size
+            if total and offset >= total:
+                break
+            time.sleep(0.3)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [oracle:{host}] list ERROR: {e}")
+    # The JD body is only on the detail resource; enrich the newest US reqs
+    # (capped), leaving any tail title-only. On error, keep the list entry.
+    detail_api = (f"https://{host}/hcmRestApi/resources/latest"
+                  "/recruitingCEJobRequisitionDetails")
+    out = []
+    for j in us_items[:max_details]:
+        jid = j.get("Id")
+        try:
+            dd = _get(f"{detail_api}?expand=all&onlyData=true"
+                      f"&finder=ById;Id=%22{jid}%22,siteNumber={site}")
+            di = (dd.get("items") or [None])[0] or j
+            di.setdefault("PrimaryLocation", j.get("PrimaryLocation", ""))
+            out.append(di)
+        except Exception:  # noqa: BLE001
+            out.append(j)
+        time.sleep(0.1)
+    out.extend(us_items[max_details:])
+    return map_oracle(company, host, site, apply_base, out)
+
+
+# --------------------------------------------------------------------------- #
+# SuccessFactors "Career Site Builder" (CSB) — e.g. Qorvo, TE Connectivity,
+# Infineon, Volkswagen. No anonymous JSON API, but the /search/ page server-
+# renders one <tr class="data-row"> per job (title + location w/ ISO country
+# code), paged by startrow; the JD body lives on each job's detail page under
+# data-careersite-propertyid="description". We page newest-first (dedup catches
+# new reqs the run they post), keep US rows, then enrich each with its body.
+# --------------------------------------------------------------------------- #
+_SF_ROW_RE = re.compile(r'<tr class="data-row">(.*?)</tr>', re.S)
+_SF_LINK_RE = re.compile(r'href="(/job/[^"]+?/(\d+)/)"')
+_SF_TITLE_RE = re.compile(r'class="jobTitle-link"[^>]*>(.*?)</a>', re.S)
+_SF_LOC_RE = re.compile(r'class="jobLocation[^"]*">(.*?)</span>', re.S)
+_SF_PROP_RE = re.compile(
+    r'data-careersite-propertyid="([a-zA-Z]+)"[^>]*>(.*?)</div>', re.S)
+# Older CSB theme (e.g. Corning) puts the JD in a microdata span instead.
+_SF_ITEMPROP_RE = re.compile(
+    r'itemprop="description"[^>]*>(.*?)</span>\s*</div>', re.S)
+_SF_US_RE = re.compile(r",\s*US(?:,|\s|$)")  # SF location: "City, ST, US, ZIP"
+
+
+def _sf_parse_rows(page_html):
+    """Parse one CSB /search/ page into [{id, path, title, location}]."""
+    out = []
+    for row in _SF_ROW_RE.findall(page_html):
+        lk = _SF_LINK_RE.search(row)
+        if not lk:
+            continue
+        ti = _SF_TITLE_RE.search(row)
+        lo = _SF_LOC_RE.search(row)
+        out.append({
+            "id": lk.group(2),
+            "path": lk.group(1),
+            "title": _strip_html(ti.group(1)) if ti else "",
+            "location": _strip_html(lo.group(1)) if lo else "",
+        })
+    return out
+
+
+def _sf_content(detail_html):
+    parts = []
+    for name, body in _SF_PROP_RE.findall(detail_html):
+        if name.lower() in ("description", "qualifications", "responsibilities"):
+            parts.append(_strip_html(body))
+    content = " ".join(p for p in parts if p).strip()
+    if not content:  # older CSB theme: single microdata description span
+        m = _SF_ITEMPROP_RE.search(detail_html)
+        if m:
+            content = _strip_html(m.group(1))
+    return content
+
+
+def map_successfactors(company, host, rows):
+    jobs = []
+    for r in rows:
+        jobs.append({
+            "id": f"successfactors:{host}:{r.get('id', '')}",
+            "company": company,
+            "title": r.get("title", "") or "",
+            "location": r.get("location", "") or "",
+            "url": f"https://{host}{r.get('path', '')}",
+            "content": r.get("content", "") or "",
+            "updated": str(r.get("updated", "") or ""),
+        })
+    return jobs
+
+
+def fetch_successfactors(company, host, max_pages=20, page_size=25,
+                         max_details=200):
+    seen = set()
+    rows = []
+    try:
+        for page in range(max_pages):
+            startrow = page * page_size
+            url = (f"https://{host}/search/?q=&sortColumn=referencedate"
+                   f"&sortDirection=desc&startrow={startrow}")
+            page_rows = _sf_parse_rows(_get_text(url))
+            if not page_rows:
+                break
+            new = 0
+            for r in page_rows:
+                if r["id"] in seen:
+                    continue
+                seen.add(r["id"])
+                new += 1
+                if _SF_US_RE.search(r["location"]):
+                    rows.append(r)
+            if new == 0 or len(page_rows) < page_size:
+                break
+            time.sleep(0.3)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [successfactors:{host}] list ERROR: {e}")
+    # Enrich US rows with the JD body from each detail page (bounded).
+    for r in rows[:max_details]:
+        try:
+            r["content"] = _sf_content(_get_text(f"https://{host}{r['path']}"))
+        except Exception:  # noqa: BLE001
+            pass
+        time.sleep(0.1)
+    return map_successfactors(company, host, rows)
+
+
+# --------------------------------------------------------------------------- #
 # Dispatcher
 # --------------------------------------------------------------------------- #
 def fetch_company(company):
@@ -475,5 +732,27 @@ def fetch_company(company):
         return fetch_apple(name, company.get("max_pages", 40))
     if ats == "phenom":
         return fetch_phenom(name, company["base"], company.get("max_pages", 20))
+    if ats == "smartrecruiters":
+        return fetch_smartrecruiters(
+            name,
+            company["slug"],
+            company.get("country", "us"),
+            company.get("max_pages", 15),
+        )
+    if ats == "oracle":
+        return fetch_oracle(
+            name,
+            company["host"],
+            company["site"],
+            company.get("apply"),
+            company.get("country", "US"),
+            company.get("max_pages", 20),
+        )
+    if ats == "successfactors":
+        return fetch_successfactors(
+            name,
+            company["host"],
+            company.get("max_pages", 20),
+        )
     print(f"  [{name}] unknown ats '{ats}' — skipping")
     return []

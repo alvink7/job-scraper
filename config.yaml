@@ -353,6 +353,9 @@ companies:
   - { name: Motional,              ats: greenhouse, slug: motional }           # (✓ 83)  AV robotaxi
   - { name: Bot Auto,              ats: greenhouse, slug: botauto }            # (✓ 21)  AV trucking
   - { name: WeRide,                ats: lever,      slug: weride }             # (✓ 30)  robotaxi / AV
+  - { name: Toyota Research Institute, ats: lever,  slug: tri }               # (✓ 13)  AV / robotics research (Los Altos, CA)
+  - { name: Helm.ai,               ats: ashby,      slug: helm-ai }           # (✓ 9)   AV perception / foundation models (Redwood City)
+  - { name: Stack AV,              ats: greenhouse, slug: stackav }           # (✓ 9)   autonomous trucking (ex-Argo founders)
   - { name: "1X",                  ats: ashby,      slug: "1x" }               # (✓ 81)  humanoid robots
   - { name: Apptronik,             ats: greenhouse, slug: apptronik }          # (✓ 79)  humanoid robots
   - { name: Agility Robotics,      ats: greenhouse, slug: agilityrobotics }    # (✓ 64)  humanoid robots
@@ -444,7 +447,23 @@ companies:
   - { name: Broadcom,          ats: workday, tenant: broadcom,        wd_num: 1, site: External_Career }   # (✓ 355)
   - { name: GlobalFoundries,   ats: workday, tenant: globalfoundries, wd_num: 1, site: External }          # (✓ 630)
   - { name: Marvell,           ats: workday, tenant: marvell,         wd_num: 1, site: MarvellCareers2 }   # (✓ 31)
+  - { name: Allegro MicroSystems, ats: workday, tenant: allegromicro, wd_num: 5, site: AllegroCareers }   # (✓ 77)  magnetic sensors / motor control (automotive)
+  - { name: Lumentum,          ats: workday, tenant: lumentum,        wd_num: 5, site: LITE }              # (✓ 227) photonics / optical / lasers
   - { name: AMD, ats: phenom, base: "https://careers.amd.com" }              # (✓ 1145) Phenom API
+  # --- Large international semi/memory incumbents with US design offices ---
+  #     (SmartRecruiters public API, or greenhouse where noted). US-only via the
+  #     adapter's country facet; counts below are live US-role totals on 2026-08-24.
+  - { name: SK Hynix,          ats: greenhouse,      slug: skhynixamerica }   # (✓ 45)  Korean memory / HBM for AI (San Jose)
+  - { name: Kioxia,            ats: smartrecruiters, slug: Kioxia }           # (✓ 10)  Japanese NAND flash (ex-Toshiba, San Jose)
+  - { name: Western Digital,   ats: smartrecruiters, slug: WesternDigital }   # (✓ 71)  storage silicon / SSD / HDD (San Jose, Irvine)
+  - { name: Renesas,           ats: smartrecruiters, slug: RenesasElectronics } # (✓ 202) automotive/embedded MCUs & SoCs
+  - { name: Microchip,         ats: smartrecruiters, slug: Microchip }        # (✓ 7)   MCUs / embedded / analog
+  # --- Oracle Recruiting Cloud (host/site discovered from the careers SPA) ---
+  - { name: Texas Instruments, ats: oracle, host: edbz.fa.us2.oraclecloud.com, site: CX, apply: "https://careers.ti.com/en/sites/CX" }   # (✓ 589) analog / embedded / silicon
+  - { name: onsemi, ats: oracle, host: hctz.fa.us2.oraclecloud.com, site: CX_1001 }   # (✓ 681) power / analog / image sensors
+  # --- SuccessFactors Career Site Builder (classic theme; /search/ HTML) ---
+  - { name: Qorvo,   ats: successfactors, host: careers.qorvo.com }         # (✓ 17 US/pg) RF / analog / power semiconductors
+  - { name: Corning, ats: successfactors, host: corningjobs.corning.com }   # (✓ 12 US/pg) optical fiber / glass / semiconductor materials
 
   # ------------------------------------------------------------------------- #
   # EV / AUTOMOTIVE — makers, charging, batteries/powertrain
@@ -464,7 +483,15 @@ companies:
   - { name: Panasonic Energy, ats: phenom, base: "https://careers.na.panasonic.com" } # (✓ 460) EV battery cells
   - { name: SES AI,          ats: greenhouse, slug: sesai }                 # (✓ 42)  Li-metal EV batteries
   - { name: Group14,         ats: greenhouse, slug: group14 }              # (✓ 4)   silicon battery materials
-  - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers } # (VERIFY tenant/wd_num/site)
+  # Rivian: the old Workday endpoint now 422s — Rivian migrated to a custom iCIMS
+  # SPA (careers.rivian.com / us-careers-rivian.icims.com) that renders jobs
+  # entirely client-side (no job data in static HTML), so it's unfetchable from a
+  # stdlib client. Re-enable if Rivian moves back to a JSON-API ATS. See notes below.
+  # - { name: Rivian, ats: workday, tenant: rivian, wd_num: 12, site: Rivian_Careers }
+  # --- International Tier-1 auto suppliers (ADAS / sensors / embedded), US R&D ---
+  - { name: Bosch,       ats: smartrecruiters, slug: BoschGroup }             # (✓ 294) sensors / ADAS / robotics (Sunnyvale research)
+  - { name: Continental, ats: smartrecruiters, slug: Continental }            # (✓ 144) ADAS / auto electronics (Silicon Valley)
+  - { name: Denso, ats: oracle, host: hcwt.fa.us2.oraclecloud.com, site: CX_1, apply: "https://hcwt.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX" } # (✓ 85 US) auto sensors / electronics
 
   # ------------------------------------------------------------------------- #
   # ENERGY / hard-tech (non-automotive)
@@ -476,6 +503,7 @@ companies:
   - { name: Pacific Fusion, ats: greenhouse, slug: pacificfusion }           # (✓ 29)  fusion energy
   - { name: KoBold Metals, ats: greenhouse, slug: koboldmetals }             # (✓ 33)  AI-driven exploration
   - { name: Radiant,      ats: ashby,      slug: radiant }                   # (✓ 28)  portable nuclear microreactors
+  - { name: Crusoe,       ats: ashby,      slug: crusoe }                    # (✓ 370) AI-datacenter compute + energy infrastructure
 
   # ------------------------------------------------------------------------- #
   # MEDICAL DEVICES / NEUROTECH  (embedded / hardware / silicon)
@@ -502,24 +530,48 @@ companies:
   - { name: HPE, ats: workday, tenant: hpe, wd_num: 5, site: Jobsathpe }               # (✓ 1063) servers / networking hardware
   - { name: Samsung, ats: workday, tenant: sec, wd_num: 3, site: Samsung_Careers }     # (✓ 668)  semiconductors / devices
   - { name: Keysight, ats: phenom, base: "https://jobs.keysight.com" }                # (✓ 604)  test & measurement (EE)
+  - { name: Honeywell, ats: oracle, host: ibqbjb.fa.ocs.oraclecloud.com, site: CX_1, apply: "https://careers.honeywell.com/en/sites/Honeywell", max_pages: 30 } # (✓ 1335) aerospace / sensors / industrial
 
   # ------------------------------------------------------------------------- #
-  # NOT INCLUDED — still need a discovered endpoint or custom adapter:
-  #   Qualcomm (Eightfold, 403). Texas Instruments, Microchip, onsemi, Qorvo,
-  #     Skyworks, Western Digital, Renesas, Lam Research, Synopsys — not found on
-  #     Workday or a Phenom `careers.<co>.com/api/jobs` path; each needs its real
-  #     careers host discovered (many are Phenom/Eightfold/Brassring on a
-  #     non-obvious domain, addable via the `phenom` adapter once found).
-  #   Bot-protected APIs (Akamai / Eightfold / auth — blocked from a plain client,
-  #     so unfetchable without a headless browser): IBM (Coveo+Akamai), Tesla
-  #     (403), Google (moved), Microsoft, Meta, Qualcomm (Eightfold 403).
-  #   JS-only SPA career pages (ATS token not in static HTML; needs per-site
-  #     reverse-engineering): Aurora, Ambarella, Groq, Cruise, Texas Instruments,
-  #     Skyworks, Seagate, Dell (Phenom, base TBD), Cisco (Phenom, base TBD),
-  #     Symbotic, Rivos, Hailo, Luminar, Ouster, Canoo, Wolfspeed.
-  #   Traditional auto OEMs / Tier-1s on custom or anti-bot platforms (need a
-  #     bespoke adapter): Ford, GM (Umbraco, 404s without a browser session),
-  #     Toyota, Honda, Stellantis, Bosch, Aptiv, Magna, Continental, BorgWarner.
+  # NOT INCLUDED — ATS identified (via careers-page fingerprint on 2026-08-24)
+  # but on a platform this scraper can't fetch anonymously. Each would need a new
+  # adapter (and some are bot-protected even then). Grouped by platform so the
+  # next adapter unlocks the whole group at once:
+  #   Eightfold (returns 403 to a plain client — Akamai/bot wall; needs a headless
+  #     browser): Qualcomm, Lam Research.
+  #   Avature (career site is HTML-only; no anonymous JSON/RSS feed): Synopsys,
+  #     Nokia.
+  #   SuccessFactors — the CLASSIC Career Site Builder theme (server-rendered
+  #     <tr class="data-row"> in /search/) IS supported and now includes Qorvo and
+  #     Corning above. The following are on SF's JS-rendered CSB variant, whose
+  #     /search/ HTML has no jobs (loaded via a tokenized AJAX call — needs a
+  #     browser): TE Connectivity (careers.te.com), Volkswagen Group of America /
+  #     CARIAD (careers.vw.com), Infineon (jobs.infineon.com), Skyworks,
+  #     STMicroelectronics.
+  #   iCIMS — modern SPA renders jobs client-side via the icims.tools BFF; static
+  #     HTML carries no job data and the RSS feed is disabled, so unfetchable from
+  #     a stdlib client: Rivian (careers.rivian.com; its old rivian.wd12 Workday
+  #     endpoint now 422s), MaxLinear (careersus-maxlinear.icims.com).
+  #   Workday but the US site name is per-region and undiscovered: ASML
+  #     (asml.wd3.myworkdayjobs.com — e.g. ASMLBERLIN; no working US site guess).
+  #   Reachable board is the WRONG division, so connecting it would add noise
+  #     without catching the target roles: Sony (sonyglobal.wd1/SonyGlobalCareers
+  #     is corporate/sales; Sony Semiconductor image-sensor R&D is a separate JP
+  #     entity with no public US ATS), Hitachi (hitachi.wd1/hitachi is Hitachi
+  #     Digital/Vantara IT-services; hardware divisions are on separate boards).
+  #   Still-unfingerprinted careers SPAs (page blocked our probe): Seagate, Amkor,
+  #     Wolfspeed, Vishay, Cirrus Logic, Silicon Labs, Coherent, Mobileye.
+  #   Bot-protected / moved (unchanged from before): IBM (Coveo+Akamai), Tesla,
+  #     Google, Microsoft, Meta.
+  #   Auto OEM tech/R&D arms — reachable careers site but on SuccessFactors or a
+  #     blocked SPA (would need a SuccessFactors adapter or a browser): Volkswagen
+  #     Group of America / CARIAD (careers.vw.com — SuccessFactors), Mercedes-Benz
+  #     R&D NA, BMW Group Technology Office, Woven by Toyota, Honda Research
+  #     Institute USA, Hyundai / 42dot, Porsche Digital. (Reachable & INCLUDED
+  #     above: Toyota Research Institute, Helm.ai, Stack AV.)
+  #   Traditional auto OEMs / Tier-1s on custom or anti-bot platforms: Ford,
+  #     GM (Umbraco), Stellantis, Aptiv (SuccessFactors), Magna, BorgWarner,
+  #     ZF, Valeo, Forvia, Visteon, Harman.
   #   Probed but empty/renamed: Applied Intuition, Gatik, Pony.ai, Overland AI,
   #     Firefly, Impulse Space, Joby, Beta, Wisk, QuantumScape, Serve, Espressif,
   #     Canoo, Aptera, Polestar, EVgo, Nikola, Zero Motorcycles, LiveWire.
