@@ -25,6 +25,11 @@ import html as _htmllib
 import urllib.request
 import urllib.error
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor
+
+# Per-job detail bodies (SmartRecruiters / Oracle / SuccessFactors) are fetched
+# concurrently with a small pool so a full run stays well inside the 15-min cron.
+_DETAIL_WORKERS = 6
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -482,7 +487,7 @@ def map_smartrecruiters(company, slug, postings):
 
 
 def fetch_smartrecruiters(company, slug, country="us", max_pages=15,
-                          page_size=100, max_details=400):
+                          page_size=100, max_details=40):
     base = f"https://api.smartrecruiters.com/v1/companies/{slug}/postings"
     listings = []
     try:
@@ -503,16 +508,16 @@ def fetch_smartrecruiters(company, slug, country="us", max_pages=15,
         print(f"  [smartrecruiters:{slug}] list ERROR: {e}")
     # Recover the JD body per posting; cap the count to bound runtime, and on a
     # detail-fetch error fall back to the list entry so the role still surfaces.
-    detailed = []
-    for p in listings[:max_details]:
-        pid = p.get("id")
-        if not pid:
-            continue
+    def _detail(p):
+        if not p.get("id"):
+            return None
         try:
-            detailed.append(_get(f"{base}/{pid}"))
+            return _get(f"{base}/{p['id']}")
         except Exception:  # noqa: BLE001
-            detailed.append(p)
-        time.sleep(0.1)
+            return p
+    with ThreadPoolExecutor(max_workers=_DETAIL_WORKERS) as ex:
+        detailed = [d for d in ex.map(_detail, listings[:max_details])
+                    if d is not None]
     return map_smartrecruiters(company, slug, detailed)
 
 
@@ -556,7 +561,7 @@ def map_oracle(company, host, site, apply_base, items):
 
 
 def fetch_oracle(company, host, site, apply_base=None, country="US",
-                 max_pages=20, page_size=50, max_details=200):
+                 max_pages=6, page_size=50, max_details=40):
     api = (f"https://{host}/hcmRestApi/resources/latest"
            "/recruitingCEJobRequisitions")
     # Newest-first paging: new reqs surface on page 1, so (as with the Apple
@@ -588,18 +593,18 @@ def fetch_oracle(company, host, site, apply_base=None, country="US",
     # (capped), leaving any tail title-only. On error, keep the list entry.
     detail_api = (f"https://{host}/hcmRestApi/resources/latest"
                   "/recruitingCEJobRequisitionDetails")
-    out = []
-    for j in us_items[:max_details]:
-        jid = j.get("Id")
+
+    def _detail(j):
         try:
             dd = _get(f"{detail_api}?expand=all&onlyData=true"
-                      f"&finder=ById;Id=%22{jid}%22,siteNumber={site}")
+                      f"&finder=ById;Id=%22{j.get('Id')}%22,siteNumber={site}")
             di = (dd.get("items") or [None])[0] or j
             di.setdefault("PrimaryLocation", j.get("PrimaryLocation", ""))
-            out.append(di)
+            return di
         except Exception:  # noqa: BLE001
-            out.append(j)
-        time.sleep(0.1)
+            return j
+    with ThreadPoolExecutor(max_workers=_DETAIL_WORKERS) as ex:
+        out = list(ex.map(_detail, us_items[:max_details]))
     out.extend(us_items[max_details:])
     return map_oracle(company, host, site, apply_base, out)
 
@@ -670,8 +675,8 @@ def map_successfactors(company, host, rows):
     return jobs
 
 
-def fetch_successfactors(company, host, max_pages=20, page_size=25,
-                         max_details=200):
+def fetch_successfactors(company, host, max_pages=12, page_size=25,
+                         max_details=40):
     seen = set()
     rows = []
     try:
@@ -696,12 +701,13 @@ def fetch_successfactors(company, host, max_pages=20, page_size=25,
     except Exception as e:  # noqa: BLE001
         print(f"  [successfactors:{host}] list ERROR: {e}")
     # Enrich US rows with the JD body from each detail page (bounded).
-    for r in rows[:max_details]:
+    def _detail(r):
         try:
             r["content"] = _sf_content(_get_text(f"https://{host}{r['path']}"))
         except Exception:  # noqa: BLE001
             pass
-        time.sleep(0.1)
+    with ThreadPoolExecutor(max_workers=_DETAIL_WORKERS) as ex:
+        list(ex.map(_detail, rows[:max_details]))
     return map_successfactors(company, host, rows)
 
 
@@ -746,13 +752,13 @@ def fetch_company(company):
             company["site"],
             company.get("apply"),
             company.get("country", "US"),
-            company.get("max_pages", 20),
+            company.get("max_pages", 6),
         )
     if ats == "successfactors":
         return fetch_successfactors(
             name,
             company["host"],
-            company.get("max_pages", 20),
+            company.get("max_pages", 12),
         )
     print(f"  [{name}] unknown ats '{ats}' — skipping")
     return []

@@ -530,7 +530,7 @@ companies:
   - { name: HPE, ats: workday, tenant: hpe, wd_num: 5, site: Jobsathpe }               # (✓ 1063) servers / networking hardware
   - { name: Samsung, ats: workday, tenant: sec, wd_num: 3, site: Samsung_Careers }     # (✓ 668)  semiconductors / devices
   - { name: Keysight, ats: phenom, base: "https://jobs.keysight.com" }                # (✓ 604)  test & measurement (EE)
-  - { name: Honeywell, ats: oracle, host: ibqbjb.fa.ocs.oraclecloud.com, site: CX_1, apply: "https://careers.honeywell.com/en/sites/Honeywell", max_pages: 30 } # (✓ 1335) aerospace / sensors / industrial
+  - { name: Honeywell, ats: oracle, host: ibqbjb.fa.ocs.oraclecloud.com, site: CX_1, apply: "https://careers.honeywell.com/en/sites/Honeywell", max_pages: 3 } # (✓ 1335) aerospace / sensors / industrial (heavy list pages; cap low, newest-first)
 
   # ------------------------------------------------------------------------- #
   # NOT INCLUDED — ATS identified (via careers-page fingerprint on 2026-08-24)
