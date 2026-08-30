@@ -35,6 +35,7 @@ for _stream in (sys.stdout, sys.stderr):
         pass
 
 import fetch
+import grad_degree
 import match as match_mod
 import notify as notify_mod
 from store import Store
@@ -108,8 +109,12 @@ def print_table(scored):
         else:
             status = "strong"
         route = "" if hf else rlabel(j.get("route"))
+        grad = j.get("grad") or {}
+        gmark = ""
+        if grad.get("required"):
+            gmark = "  ⚠PhD" if grad.get("level") == "phd" else "  ⚠MS"
         print(f"{j.get('score', 0):>5}  {status:<8} {route:<6} "
-              f"{j.get('company', '?')[:18]:<18} {j.get('title', '')[:46]}")
+              f"{j.get('company', '?')[:18]:<18} {j.get('title', '')[:46]}{gmark}")
         if hf:
             print(f"       └─ {hf}")
         else:
@@ -162,8 +167,14 @@ def main(argv=None):
     scored = engine.score_jobs(fresh)
 
     results, noise, failed = split_results(scored)
+    # Mark sendable jobs that REQUIRE a graduate degree (Master's/PhD) so the
+    # notification / table can flag them. Preferred-only mentions don't count.
+    for j in results:
+        j["grad"] = grad_degree.assess_graduate_requirement(
+            j.get("title", ""), j.get("content", ""))
+    grad_n = sum(1 for j in results if j["grad"]["required"])
     print(f"  send: {len(results)}   noise-dropped: {len(noise)}   "
-          f"hard-failed: {len(failed)}")
+          f"hard-failed: {len(failed)}   grad-degree-required: {grad_n}")
     print(route_summary(results))
 
     if args.dry_run:

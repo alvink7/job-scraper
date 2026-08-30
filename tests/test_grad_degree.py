@@ -94,5 +94,31 @@ class TestNotRequired(unittest.TestCase):
         self.assertFalse(r["required"])
 
 
+class TestNotifyGradMarker(unittest.TestCase):
+    """The Discord embed marks grad-required jobs and stays clean otherwise."""
+
+    def _embed(self, job):
+        import notify
+        return notify.build_embed(job, 10)
+
+    def test_grad_required_marks_title_and_field(self):
+        e = self._embed({"title": "Research Intern", "company": "X",
+                         "score": 12, "grad": {"required": True,
+                                               "level": "phd"}})
+        self.assertTrue(e["title"].startswith("⚠️"))
+        self.assertTrue(any(f["name"] == "Degree" and "PhD" in f["value"]
+                            for f in e["fields"]))
+
+    def test_not_required_is_clean(self):
+        e = self._embed({"title": "FW Intern", "company": "Y", "score": 12,
+                         "grad": {"required": False}})
+        self.assertFalse(e["title"].startswith("⚠️"))
+        self.assertFalse(any(f["name"] == "Degree" for f in e["fields"]))
+
+    def test_missing_grad_key_is_safe(self):
+        e = self._embed({"title": "Z", "company": "Z", "score": 5})
+        self.assertEqual(e["title"], "Z")
+
+
 if __name__ == "__main__":
     unittest.main()

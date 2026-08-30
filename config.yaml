@@ -415,6 +415,7 @@ companies:
   - { name: Planet,           ats: greenhouse, slug: planetlabs }             # (✓ 112)  earth-observation satellites (sensors)
   - { name: Loft Orbital,     ats: lever,      slug: loftorbital }            # (✓ 60)   satellite infrastructure
   - { name: HawkEye 360,      ats: greenhouse, slug: hawkeye360 }             # (✓ 18)   RF-sensing satellites (geospatial)
+  - { name: Albedo,           ats: greenhouse, slug: albedo }                # (✓ 10)   very-low-orbit imaging satellites
 
   # ------------------------------------------------------------------------- #
   # SILICON / accelerators / chips  (computer-architecture target)
@@ -498,6 +499,7 @@ companies:
   - { name: Bosch,       ats: smartrecruiters, slug: BoschGroup }             # (✓ 294) sensors / ADAS / robotics (Sunnyvale research)
   - { name: Continental, ats: smartrecruiters, slug: Continental }            # (✓ 144) ADAS / auto electronics (Silicon Valley)
   - { name: Denso, ats: oracle, host: hcwt.fa.us2.oraclecloud.com, site: CX_1, apply: "https://hcwt.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX" } # (✓ 85 US) auto sensors / electronics
+  - { name: Divergent,   ats: greenhouse, slug: divergent }                 # (✓ 70)  3D-printed vehicle structures / defense (Torrance, CA)
 
   # ------------------------------------------------------------------------- #
   # ENERGY / hard-tech (non-automotive)
@@ -512,6 +514,8 @@ companies:
   - { name: Crusoe,       ats: ashby,      slug: crusoe }                    # (✓ 370) AI-datacenter compute + energy infrastructure
   - { name: Oklo,         ats: greenhouse, slug: oklo }                      # (✓ 64)  fast-fission nuclear microreactors
   - { name: Kairos Power, ats: greenhouse, slug: kairospower }               # (✓ 23)  molten-salt nuclear reactors
+  - { name: CoreWeave,    ats: greenhouse, slug: coreweave }                 # (✓ 271) AI-datacenter compute / networking hardware
+  - { name: Lambda,       ats: ashby,      slug: lambda }                    # (✓ 76)  GPU compute infrastructure
 
   # ------------------------------------------------------------------------- #
   # MEDICAL DEVICES / NEUROTECH  (embedded / hardware / silicon)
@@ -548,15 +552,23 @@ companies:
   #   Eightfold — the open tenants ARE supported (API on the *.eightfold.ai host,
   #     domain = the company's real domain; STMicroelectronics is included above).
   #     These tenants Akamai-wall the same API (403 to a plain client — needs a
-  #     headless browser): Qualcomm, Lam Research, NVIDIA-Eightfold.
-  #   Avature (career site is HTML-only; no anonymous JSON/RSS feed): Synopsys,
-  #     Nokia.
+  #     headless browser): Qualcomm, Lam Research, NVIDIA-Eightfold. Confirmed
+  #     unreachable: the API 403s even with full browser headers, and loading the
+  #     careers page first only sets Eightfold's own _vs/_vscid cookies (not the
+  #     Akamai _abck sensor cookie), so a cookie-jar retry still 403s.
+  #   Avature (Synopsys, Nokia): the SearchJobs HTML server-renders only ~6
+  #     "featured" jobs; the full list (e.g. Synopsys's 410) loads via client-side
+  #     AJAX with no plain JSON endpoint found — browser-only.
   #   SuccessFactors — the CLASSIC Career Site Builder theme (server-rendered
   #     <tr class="data-row"> in /search/) IS supported and now includes Qorvo and
-  #     Corning above. The following are on SF's JS-rendered CSB variant, whose
-  #     /search/ HTML has no jobs (loaded via a tokenized AJAX call — needs a
-  #     browser): TE Connectivity (careers.te.com), Volkswagen Group of America /
-  #     CARIAD (careers.vw.com), Infineon (jobs.infineon.com), Skyworks.
+  #     Corning above. The JS-rendered CSB variant has no jobs in /search/ HTML:
+  #     TE Connectivity (careers.te.com), Volkswagen Group of America / CARIAD
+  #     (careers.vw.com), Infineon (jobs.infineon.com), Skyworks. FUTURE LEAD:
+  #     these still publish /sitemap.xml (Skyworks ~147 job URLs; US ones end in
+  #     -<ST>-<ZIP>) and the detail pages server-render og:title + a
+  #     data-careersite/itemprop="description" body — a sitemap+detail adapter
+  #     could reach them, but the city is only in the URL slug (recoverable only by
+  #     slugifying og:title and subtracting it), so US-metro gating is fragile.
   #     (STMicroelectronics moved to Eightfold and is now included above.)
   #   iCIMS — modern SPA renders jobs client-side via the icims.tools BFF; static
   #     HTML carries no job data and the RSS feed is disabled, so unfetchable from

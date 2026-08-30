@@ -32,24 +32,38 @@ def build_embed(job, min_score):
     partial = job.get("partial", False)
     score = job.get("score", 0)
     title = job.get("title", "(no title)")
+    # `grad` is precomputed by main.py (grad_degree.assess_graduate_requirement);
+    # absent -> no marker, so notify stays decoupled from the detector.
+    grad = job.get("grad") or {}
+    grad_required = grad.get("required")
+    prefix = ""
     if partial:
-        title = "\U0001F7E1 " + title  # yellow circle prefix
+        prefix += "\U0001F7E1 "  # yellow circle
+    if grad_required:
+        prefix += "⚠️ "  # warning sign: needs a graduate degree
+    title = prefix + title
     score_str = f"{score}" + (" · partial" if partial else "")
     matched = ", ".join(job.get("matched", []) or [])
+    fields = [
+        {"name": "Company", "value": _truncate(job.get("company", "?"), 256),
+         "inline": True},
+        {"name": "Location",
+         "value": _truncate(job.get("location", "") or "—", 256),
+         "inline": True},
+        {"name": "Score", "value": score_str, "inline": True},
+        {"name": "Matched",
+         "value": _truncate(matched or "—", 1024), "inline": False},
+    ]
+    if grad_required:
+        deg = "PhD" if grad.get("level") == "phd" else "Master's"
+        fields.append({"name": "Degree",
+                       "value": f"⚠️ Requires a {deg}",
+                       "inline": False})
     embed = {
         "title": _truncate(title, 256),
         "url": job.get("url", "") or None,
         "color": _color(score, min_score),
-        "fields": [
-            {"name": "Company", "value": _truncate(job.get("company", "?"), 256),
-             "inline": True},
-            {"name": "Location",
-             "value": _truncate(job.get("location", "") or "—", 256),
-             "inline": True},
-            {"name": "Score", "value": score_str, "inline": True},
-            {"name": "Matched",
-             "value": _truncate(matched or "—", 1024), "inline": False},
-        ],
+        "fields": fields,
     }
     return embed
 
