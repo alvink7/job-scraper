@@ -633,6 +633,32 @@ class TestFetchMapping(unittest.TestCase):
         self.assertEqual(out[0]["location"], "Richardson, TX, US, 75081")
         self.assertIn("RFIC", out[0]["content"])
 
+    def test_map_eightfold(self):
+        positions = [{
+            "id": 563637173146890,
+            "name": "Software Algorithm Embedded Intern",
+            "location": "Santa Clara, United States",
+            "locations": ["Santa Clara, United States"],
+            "canonicalPositionUrl":
+                "https://stmicroelectronics.eightfold.ai/careers/job/563637173146890",
+            "job_description": "<p>Work on <b>embedded</b> firmware and DSP.</p>",
+            "t_create": 1778744353,
+        }]
+        out = fetch.map_eightfold(
+            "STMicroelectronics", "stmicroelectronics.eightfold.ai", positions)
+        self.assertEqual(
+            out[0]["id"],
+            "eightfold:stmicroelectronics.eightfold.ai:563637173146890")
+        self.assertEqual(out[0]["title"], "Software Algorithm Embedded Intern")
+        self.assertEqual(out[0]["location"], "Santa Clara, United States")
+        self.assertEqual(
+            out[0]["url"],
+            "https://stmicroelectronics.eightfold.ai/careers/job/563637173146890")
+        self.assertIn("embedded", out[0]["content"].lower())
+        # falls back to a constructed URL when canonical is absent
+        out2 = fetch.map_eightfold("X", "x.eightfold.ai", [{"id": 7, "name": "Eng"}])
+        self.assertEqual(out2[0]["url"], "https://x.eightfold.ai/careers/job/7")
+
     def test_map_workday(self):
         posting = {
             "title": "New Grad HW Engineer",

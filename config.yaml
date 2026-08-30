@@ -412,6 +412,9 @@ companies:
   - { name: Astranis,         ats: greenhouse, slug: astranis }               # (✓ 89)   satellites
   - { name: Turion Space,     ats: ashby,      slug: turion-space }           # (✓ 16)   space situational awareness
   - { name: Electra,          ats: greenhouse, slug: electraaero }            # (✓ 23)   hybrid-electric aircraft
+  - { name: Planet,           ats: greenhouse, slug: planetlabs }             # (✓ 112)  earth-observation satellites (sensors)
+  - { name: Loft Orbital,     ats: lever,      slug: loftorbital }            # (✓ 60)   satellite infrastructure
+  - { name: HawkEye 360,      ats: greenhouse, slug: hawkeye360 }             # (✓ 18)   RF-sensing satellites (geospatial)
 
   # ------------------------------------------------------------------------- #
   # SILICON / accelerators / chips  (computer-architecture target)
@@ -464,6 +467,9 @@ companies:
   # --- SuccessFactors Career Site Builder (classic theme; /search/ HTML) ---
   - { name: Qorvo,   ats: successfactors, host: careers.qorvo.com }         # (✓ 17 US/pg) RF / analog / power semiconductors
   - { name: Corning, ats: successfactors, host: corningjobs.corning.com }   # (✓ 12 US/pg) optical fiber / glass / semiconductor materials
+  # --- Eightfold Career Hub (open API on the *.eightfold.ai host) ---
+  - { name: STMicroelectronics, ats: eightfold, host: stmicroelectronics.eightfold.ai, domain: stmicroelectronics.com } # (✓ 41 US) automotive/MEMS/analog/power silicon
+  - { name: indie Semiconductor, ats: greenhouse, slug: indiesemiconductor } # (✓ 24) automotive mixed-signal silicon / ADAS
 
   # ------------------------------------------------------------------------- #
   # EV / AUTOMOTIVE — makers, charging, batteries/powertrain
@@ -504,6 +510,8 @@ companies:
   - { name: KoBold Metals, ats: greenhouse, slug: koboldmetals }             # (✓ 33)  AI-driven exploration
   - { name: Radiant,      ats: ashby,      slug: radiant }                   # (✓ 28)  portable nuclear microreactors
   - { name: Crusoe,       ats: ashby,      slug: crusoe }                    # (✓ 370) AI-datacenter compute + energy infrastructure
+  - { name: Oklo,         ats: greenhouse, slug: oklo }                      # (✓ 64)  fast-fission nuclear microreactors
+  - { name: Kairos Power, ats: greenhouse, slug: kairospower }               # (✓ 23)  molten-salt nuclear reactors
 
   # ------------------------------------------------------------------------- #
   # MEDICAL DEVICES / NEUROTECH  (embedded / hardware / silicon)
@@ -537,8 +545,10 @@ companies:
   # but on a platform this scraper can't fetch anonymously. Each would need a new
   # adapter (and some are bot-protected even then). Grouped by platform so the
   # next adapter unlocks the whole group at once:
-  #   Eightfold (returns 403 to a plain client — Akamai/bot wall; needs a headless
-  #     browser): Qualcomm, Lam Research.
+  #   Eightfold — the open tenants ARE supported (API on the *.eightfold.ai host,
+  #     domain = the company's real domain; STMicroelectronics is included above).
+  #     These tenants Akamai-wall the same API (403 to a plain client — needs a
+  #     headless browser): Qualcomm, Lam Research, NVIDIA-Eightfold.
   #   Avature (career site is HTML-only; no anonymous JSON/RSS feed): Synopsys,
   #     Nokia.
   #   SuccessFactors — the CLASSIC Career Site Builder theme (server-rendered
@@ -546,8 +556,8 @@ companies:
   #     Corning above. The following are on SF's JS-rendered CSB variant, whose
   #     /search/ HTML has no jobs (loaded via a tokenized AJAX call — needs a
   #     browser): TE Connectivity (careers.te.com), Volkswagen Group of America /
-  #     CARIAD (careers.vw.com), Infineon (jobs.infineon.com), Skyworks,
-  #     STMicroelectronics.
+  #     CARIAD (careers.vw.com), Infineon (jobs.infineon.com), Skyworks.
+  #     (STMicroelectronics moved to Eightfold and is now included above.)
   #   iCIMS — modern SPA renders jobs client-side via the icims.tools BFF; static
   #     HTML carries no job data and the RSS feed is disabled, so unfetchable from
   #     a stdlib client: Rivian (careers.rivian.com; its old rivian.wd12 Workday

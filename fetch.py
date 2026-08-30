@@ -712,6 +712,86 @@ def fetch_successfactors(company, host, max_pages=12, page_size=25,
 
 
 # --------------------------------------------------------------------------- #
+# Eightfold (Career Hub) — e.g. STMicroelectronics. The public position API is
+# open on the tenant's *.eightfold.ai host (the vanity careers.<co>.com domains
+# are Akamai-walled, but the eightfold.ai host is not) as long as `domain` is the
+# company's real domain (found in the careers page config as "domain": "...").
+# Server-side `location` filter keeps this US-only; the JD body is on the detail
+# resource. Discover host + domain by opening https://<tenant>.eightfold.ai/careers
+# and grepping the embedded config for "domain".
+# --------------------------------------------------------------------------- #
+def _eightfold_get(url, host):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": USER_AGENT,
+        "Accept": "application/json",
+        "Referer": f"https://{host}/careers",
+    })
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode("utf-8", errors="replace"))
+
+
+def map_eightfold(company, host, positions):
+    jobs = []
+    for p in positions:
+        pid = str(p.get("id", "") or "")
+        loc = p.get("location") or (p.get("locations") or [""])[0] or ""
+        url = p.get("canonicalPositionUrl") or f"https://{host}/careers/job/{pid}"
+        jobs.append({
+            "id": f"eightfold:{host}:{pid}",
+            "company": company,
+            "title": p.get("name", "") or "",
+            "location": loc,
+            "url": url,
+            "content": _strip_html(p.get("job_description", "") or ""),
+            "updated": str(p.get("t_create", "") or ""),
+        })
+    return jobs
+
+
+def fetch_eightfold(company, host, domain, country="United States",
+                    max_pages=8, page_size=10, max_details=40):
+    # NB: the Eightfold API hard-caps `num` at 10 per page, so page_size is 10.
+    base = (f"https://{host}/api/apply/v2/jobs"
+            f"?domain={urllib.parse.quote(domain)}"
+            f"&location={urllib.parse.quote(country)}&sort_by=timestamp")
+    positions, seen = [], set()
+    try:
+        for page in range(max_pages):
+            start = page * page_size
+            data = _eightfold_get(f"{base}&start={start}&num={page_size}", host)
+            pos = data.get("positions") or []
+            if not pos:
+                break
+            new = 0
+            for p in pos:
+                if p.get("id") in seen:
+                    continue
+                seen.add(p.get("id"))
+                positions.append(p)
+                new += 1
+            total = data.get("count") or 0
+            if new == 0 or start + page_size >= total:
+                break
+            time.sleep(0.3)
+    except Exception as e:  # noqa: BLE001
+        print(f"  [eightfold:{host}] list ERROR: {e}")
+    # The JD body is only on the detail resource; enrich the newest US positions.
+    def _detail(p):
+        try:
+            d = _eightfold_get(
+                f"https://{host}/api/apply/v2/jobs/{p['id']}"
+                f"?domain={urllib.parse.quote(domain)}", host)
+            p["job_description"] = d.get("job_description") or ""
+        except Exception:  # noqa: BLE001
+            pass
+        return p
+    with ThreadPoolExecutor(max_workers=_DETAIL_WORKERS) as ex:
+        head = list(ex.map(_detail, positions[:max_details]))
+    positions = head + positions[max_details:]
+    return map_eightfold(company, host, positions)
+
+
+# --------------------------------------------------------------------------- #
 # Dispatcher
 # --------------------------------------------------------------------------- #
 def fetch_company(company):
@@ -759,6 +839,14 @@ def fetch_company(company):
             name,
             company["host"],
             company.get("max_pages", 12),
+        )
+    if ats == "eightfold":
+        return fetch_eightfold(
+            name,
+            company["host"],
+            company["domain"],
+            company.get("country", "United States"),
+            company.get("max_pages", 8),
         )
     print(f"  [{name}] unknown ats '{ats}' — skipping")
     return []
