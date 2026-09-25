@@ -447,7 +447,9 @@ companies:
   - { name: NXP Semiconductors, ats: workday, tenant: nxp,            wd_num: 3, site: careers }           # (✓ 785)
   - { name: Applied Materials, ats: workday, tenant: amat,            wd_num: 1, site: External }          # (✓ 1873)
   - { name: KLA,               ats: workday, tenant: kla,             wd_num: 1, site: Search }            # (✓ 987)
-  - { name: Cadence,           ats: workday, tenant: cadence,         wd_num: 1, site: External_Careers }  # (✓ 577)
+  - { name: Cadence,           ats: workday, tenant: cadence,         wd_num: 1, site: External_Careers }  # (✓ 577)  EDA / chip design tools
+  - { name: Lattice Semiconductor, ats: workday, tenant: latticesemi, wd_num: 5, site: latticesemiconductorscareers } # (✓ 133) FPGAs / programmable logic
+  - { name: Silvaco,           ats: smartrecruiters, slug: Silvaco1 }                                      # (✓ EDA)  TCAD / EDA simulation software
   - { name: Broadcom,          ats: workday, tenant: broadcom,        wd_num: 1, site: External_Career }   # (✓ 355)
   - { name: GlobalFoundries,   ats: workday, tenant: globalfoundries, wd_num: 1, site: External }          # (✓ 630)
   - { name: Marvell,           ats: workday, tenant: marvell,         wd_num: 1, site: MarvellCareers2 }   # (✓ 31)
@@ -558,7 +560,15 @@ companies:
   #     Akamai _abck sensor cookie), so a cookie-jar retry still 403s.
   #   Avature (Synopsys, Nokia): the SearchJobs HTML server-renders only ~6
   #     "featured" jobs; the full list (e.g. Synopsys's 410) loads via client-side
-  #     AJAX with no plain JSON endpoint found — browser-only.
+  #     AJAX with no plain JSON endpoint found — browser-only. NOTE: Ansys is now
+  #     part of Synopsys (www.ansys.com/careers -> ansys.synopsys.com), so it is on
+  #     the same walled Avature and can't be added separately.
+  #   EDA / chip-design-tools / semiconductor-IP peers of Cadence & Synopsys and
+  #     where they landed: Cadence (Workday, incl. above), Lattice + Silvaco (added
+  #     above), Keysight (Phenom, incl. above). Unreachable: Synopsys/Ansys
+  #     (Avature), Siemens EDA (jobs.siemens.com, custom), Rambus (iCIMS
+  #     careers-rambus), Alphawave (acquired by Qualcomm -> Eightfold), CEVA /
+  #     Arteris / Imagination (JS-only careers SPAs, ATS host not in static HTML).
   #   SuccessFactors — the CLASSIC Career Site Builder theme (server-rendered
   #     <tr class="data-row"> in /search/) IS supported and now includes Qorvo and
   #     Corning above. The JS-rendered CSB variant has no jobs in /search/ HTML:
